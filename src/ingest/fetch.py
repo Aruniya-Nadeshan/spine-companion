@@ -16,8 +16,10 @@ import requests
 CONTACT = os.environ.get("INGEST_CONTACT", "unset")
 USER_AGENT = f"spine-companion-ingest/0.1 (student research project; contact: {CONTACT})"
 HEADERS = {"User-Agent": USER_AGENT}
-TIMEOUT = 30
+TIMEOUT = (10, 120)  # (connect, read) seconds; full-text XML can be large and slow
 DELAY_SECONDS = 1.0  # pause between requests
+MAX_ATTEMPTS = 3  # tries per download before giving up
+RETRY_BACKOFF = 5  # seconds; multiplied by the attempt number
 
 
 class FetchError(Exception):
@@ -41,6 +43,30 @@ def allowed_by_robots(url):
     return parser.can_fetch(USER_AGENT, url)
 
 
+def _get_with_retries(url, source_id):
+    """GET a URL, retrying timeouts, connection errors and 5xx server errors.
+
+    Client errors (404, 403...) are not retried: asking again won't change them.
+    """
+    last_error = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+            if resp.status_code >= 500:
+                last_error = f"server error {resp.status_code}"
+            else:
+                resp.raise_for_status()  # raises on 4xx
+                return resp
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            last_error = str(exc)
+        except requests.RequestException as exc:
+            raise FetchError(f"Download failed for '{source_id}': {exc}") from exc
+        if attempt < MAX_ATTEMPTS:
+            time.sleep(RETRY_BACKOFF * attempt)
+    raise FetchError(
+        f"Download failed for '{source_id}' after {MAX_ATTEMPTS} attempts: {last_error}")
+
+
 def raw_path(source, raw_dir="data/raw"):
     """Where a source's downloaded original is stored."""
     ext = "xml" if source["format"] == "jats-xml" else "html"
@@ -58,11 +84,7 @@ def fetch_source(source, raw_dir="data/raw"):
     if source["format"] == "html" and not allowed_by_robots(url):
         raise FetchError(f"robots.txt does not allow fetching {url}")
     time.sleep(DELAY_SECONDS)
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-        resp.raise_for_status()
-    except requests.RequestException as exc:
-        raise FetchError(f"Download failed for '{source['id']}': {exc}") from exc
+    resp = _get_with_retries(url, source["id"])
 
     path = raw_path(source, raw_dir)
     path.parent.mkdir(parents=True, exist_ok=True)

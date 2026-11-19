@@ -19,6 +19,32 @@ EXCLUDED_HEADINGS = {"references", "reference", "footnotes", "abbreviations",
                      "competing interests", "publisher's note", "author information"}
 
 
+def _is_link_only(el):
+    """True if every word in this element is link text (typical of tab and menu lists)."""
+    links = el.find_all("a")
+    if not links:
+        return False
+    link_text = "".join(a.get_text(" ", strip=True) for a in links)
+    return link_text.replace(" ", "") == el.get_text(" ", strip=True).replace(" ", "")
+
+
+def _remove_navigation_lists(root):
+    """Delete lists that are really menus or page tabs.
+
+    A list counts as navigation when it has 2+ items, at least half of them are
+    pure links, and every item is short. The current tab is often plain text
+    rather than a link, which is why the check is on the list, not each item.
+    """
+    for lst in root.find_all(["ul", "ol"]):
+        items = lst.find_all("li", recursive=False)
+        if len(items) < 2:
+            continue
+        link_only = sum(_is_link_only(li) for li in items)
+        all_short = all(len(li.get_text(" ", strip=True)) <= 80 for li in items)
+        if link_only * 2 >= len(items) and all_short:
+            lst.decompose()
+
+
 def extract_html(html):
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(NOISE_TAGS):
@@ -26,6 +52,7 @@ def extract_html(html):
 
     title = soup.title.get_text(" ", strip=True) if soup.title else ""
     root = soup.find("main") or soup.find("article") or soup.body or soup
+    _remove_navigation_lists(root)
 
     sections = []
     current = {"heading": title or "Introduction", "paragraphs": []}

@@ -59,3 +59,36 @@ def test_quality_check_flags_tiny_or_unstructured_documents():
 def test_quality_check_passes_reasonable_document():
     sections = [{"heading": f"H{i}", "paragraphs": ["x" * 1000]} for i in range(3)]
     assert check_quality(sections) == []
+
+
+TABS_HTML = """
+<html><head><title>Scoliosis | NIAMS</title></head><body><main>
+  <h1>Scoliosis in Children and Teens</h1>
+  <ul>
+    <li>Overview, Symptoms, &amp; Causes</li>
+    <li><a href="/dx">Diagnosis, Treatment, &amp; Steps To Take</a></li>
+    <li><a href="/more">Research &amp; Resources</a></li>
+  </ul>
+  <h2>Symptoms of Scoliosis</h2>
+  <p>Signs may include the following.</p>
+  <ul><li>Top of shoulders are uneven.</li>
+      <li>See <a href="/x">the guide</a> for more detail.</li></ul>
+</main></body></html>
+"""
+
+
+def test_navigation_tab_list_is_dropped_but_real_bullets_kept():
+    doc = extract_html(TABS_HTML)
+    text = " ".join(p for s in doc["sections"] for p in s["paragraphs"])
+    assert "Overview, Symptoms" not in text  # current tab is plain text, still navigation
+    assert "Diagnosis, Treatment" not in text
+    assert "Research & Resources" not in text
+    assert "Top of shoulders are uneven." in text
+    assert "See the guide for more detail." in text  # partly a link, so it is content
+
+
+def test_a_list_of_real_bullets_is_never_treated_as_navigation():
+    html = ("<html><body><main><h2>Causes</h2><ul><li>Genes.</li><li>Hormones.</li>"
+            "<li>Changes in cell structure.</li></ul></main></body></html>")
+    doc = extract_html(html)
+    assert doc["sections"][0]["paragraphs"] == ["Genes.", "Hormones.", "Changes in cell structure."]
