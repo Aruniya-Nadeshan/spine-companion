@@ -1,6 +1,7 @@
 id,title,publisher,url,fetch_url,format,date_accessed,licence,attribution,v1_use,notes
 sosort-2016,2016 SOSORT guidelines: orthopaedic and rehabilitation treatment of idiopathic scoliosis during growth,SOSORT / Scoliosis and Spinal Disorders,https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5795289/,https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5795289/fullTextXML,jats-xml,2026-11-19,CC BY 4.0,"Negrini S, et al. 2016 SOSORT guidelines. Scoliosis Spinal Disord. 2018;13:3. doi:10.1186/s13013-017-0145-8. CC BY 4.0; changes indicated.",ingest,Clinician-targeted; answers must be plain language
-niams-scoliosis-overview,Overview of Scoliosis,NIAMS (NIH),https://www.niams.nih.gov/health-topics/scoliosis,,html,2026-11-19,Public domain (text only),Credit NIAMS,ingest,Text only; exclude images
+niams-scoliosis-overview,"Scoliosis in Children and Teens: Overview, Symptoms, & Causes",NIAMS (NIH),https://www.niams.nih.gov/health-topics/scoliosis,,html,2026-11-19,Public domain (text only),Credit NIAMS,ingest,Text only; exclude images
+niams-scoliosis-diagnosis-treatment,"Scoliosis in Children and Teens: Diagnosis, Treatment, and Steps to Take",NIAMS (NIH),https://www.niams.nih.gov/health-topics/scoliosis/diagnosis-treatment-and-steps-to-take,,html,2026-11-19,Public domain (text only),Credit NIAMS,ingest,Text only; exclude images; includes Living With Scoliosis section
 nhs-scoliosis,,NHS,,,,,OGL with conditions (see notes),,deferred,Paraphrasing counts as adaptation; adapted content may not be attributed to the NHS. Revisit with verbatim-passage design
 aaos-orthoinfo,,AAOS,,,,,All rights reserved,,link-only,Request permission via OrthoInfo@aaos.org if wanted
 srs-patients,,Scoliosis Research Society,,,,,All rights reserved (no open licence found),,link-only,
