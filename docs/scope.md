@@ -58,16 +58,17 @@ The red-flag list will be reviewed against the source documents before it is fin
 
 **Selection criteria:** published by a recognised medical body, hospital, or health service; clearly dated or recently reviewed; written for patients where possible; licence permits storage and retrieval, or we link without copying.
 
-| Candidate source | Type | Licence / terms check |
-|---|---|---|
-| Scoliosis Research Society (SRS) patient pages | Professional society | ☐ to verify |
-| NHS scoliosis pages | National health service | ☐ to verify |
-| NIAMS (NIH) scoliosis information | Government | ☐ to verify |
-| AAOS OrthoInfo | Professional society | ☐ to verify |
-| Boston Children's Hospital / other children's hospitals | Hospital | ☐ to verify |
-| Open-access clinical guidelines (e.g. SOSORT) | Guidelines | ☐ to verify |
+| Source | Type | Licence status (checked 2026-11-19) | v1 use |
+|---|---|---|---|
+| NIAMS (NIH) scoliosis pages | Government | Text public domain; images excluded | Ingest text, credit NIAMS |
+| SOSORT 2016 guidelines (Negrini et al., 2018) | Clinical guideline | CC BY 4.0 | Ingest, attribute, note changes |
+| NHS scoliosis pages | National health service | Reuse permitted with attribution, copy date and refresh conditions; adaptation caveat | Ingest after reading full terms; show attribution and copy date |
+| AAOS OrthoInfo | Professional society | All rights reserved; link-only policy | Link only, or request permission |
+| Scoliosis Research Society | Professional society | SRS holds copyright; no open licence found | Link only, or request permission |
+| Boston Children's Hospital | Hospital | No reuse licence found | Not ingested |
+| MedlinePlus, PMC open-access papers | Government / journals | Not yet verified | Candidates to check |
 
-Each document is logged in `data/sources.csv` with: id, title, publisher, URL, date accessed, licence status. Nothing enters the index without a row.
+Each document is logged in `data/sources.csv` with: id, title, publisher, URL, date accessed, licence status, required attribution text, and v1 use (ingest / link-only). Nothing enters the index without a row, and answers display the attribution for every source they cite.
 
 ## 8. Success metrics
 
