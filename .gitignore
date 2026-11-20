@@ -228,3 +228,4 @@ data/processed/*
 !data/processed/.gitkeep
 .venv/
 .env
+data/index/
