@@ -74,3 +74,52 @@ A short record of each design choice: what was decided, why, what else was consi
 
 **Decision:** The owner writes the specification and makes the design decisions. AI tools draft code, tests and documents in small diffs. Nothing is committed until the owner can explain it in her own words, and `AGENTS.md` records the project rules for any AI assistant.
 **Why:** It saves time while keeping the owner able to change the project without help. Tests act as the safeguard against trusting output that hasn't been verified.
+
+---
+
+## 2026-11-21: Python 3.11 for the project environment
+
+**Decision:** The project environment uses Python 3.11.
+**Why:** The retrieval dependencies (PyTorch, ChromaDB) lag behind the newest Python releases, and ChromaDB had a reported incompatibility with Python 3.14. Python 3.12 was not installed; 3.11 was, and is widely supported across ML libraries.
+**Revisit when:** The dependencies officially support the newer versions.
+
+## 2026-11-21: Retrieval baseline settings
+
+**Decision:** Embeddings come from `BAAI/bge-small-en-v1.5` (free, runs locally on a CPU). Vectors are stored in a local ChromaDB collection and compared by cosine similarity. Chunks are about 250 words with 40 words of overlap, split on sentence boundaries. A section that already fits in about one chunk stays whole. Search returns the top 5. Questions get the instruction prefix the bge model expects. Every value lives in `src/rag/config.py`.
+**Why:** It is a small, free, well-known setup that I can run and explain. It is a baseline, not a final answer.
+**Alternatives considered:** `all-MiniLM-L6-v2` (older, also free); other chunk sizes.
+**Revisit when:** Phase 4, with the evaluation set deciding between alternatives.
+
+## 2026-11-21: Build and verify retrieval before adding the language model
+
+**Decision:** Retrieval is built and checked on its own first. Answer generation comes after.
+**Why:** Most RAG failures start in retrieval. If a language model writes fluent answers over bad passages, the faults are hidden. Testing retrieval alone makes them visible.
+
+## 2026-11-21: Merge chunks under 40 words into a neighbour, keeping their heading
+
+**Decision:** A chunk under 40 words is merged into the previous chunk (or the next one, at the start of a document), prefixed with its own heading, and never beyond 350 words in total.
+**Why:** Tiny chunks (the first index had one of 8 words) give weak, noisy matches. Keeping the heading label means nothing is lost.
+**Result:** 155 chunks became 142, with a smallest chunk of 40 words.
+
+## 2026-11-21: Drop publisher boilerplate sections
+
+**Decision:** Sections such as Electronic supplementary material, Authors' contributions, Availability of data and materials and About this article are excluded, matching straight and curly apostrophes alike.
+**Why:** They contain no scoliosis knowledge and would only add noise to the index.
+
+## 2026-11-21: Fix glued text at its source, in the JATS extractor
+
+**Context:** Words were running together in the SOSORT text (for example `dysfunctionTo`, `MethodologyBackground`, `following:Methodology`). My first two guesses were wrong: the publisher XML did contain some glued words, but the extractor was not dropping spaces, and there were no hidden characters (a character report showed only ordinary typography). A report of rare words then showed the real pattern: bullets and subheadings were being joined without spacing.
+**Decision:** The extractor now treats block elements (paragraphs, lists, list items, titles, boxes) as boundaries and pads them with spaces, turns each bullet into its own paragraph, and avoids duplicating nested lists. Inline formatting such as italics adds no space.
+**Why:** The fault was in my extractor. Repairing symptoms afterwards could never be reliable.
+
+## 2026-11-21: Keep a conservative repair step as a safety net
+
+**Decision:** After extraction, a repair step splits glued words only under strict rules: the word is not in an English dictionary (`pyspellchecker`); its parts are words the document itself uses often; it is rare compared with its parts; words under 7 letters are split only into common function words; common prefixes (non, anti, pre...) are respected; acronyms and parts of web addresses are never touched; and a second rule splits at a capital letter only when both sides are real words and the token is not a known name (a keep-list covers PubMed, ScoliScore, SpineCor and similar). Every repair is recorded in the document's JSON and can be printed.
+**Why:** This is medical text, so an aggressive spell-checker could damage clinical terms. Logging every change makes the step auditable, and the attribution already states that changes were made.
+**Result:** One repair on SOSORT (`fulltime` to `full time`). The remaining capital-in-the-middle tokens are all real names or abbreviations (BrAIST, McMaster, ScoliScore, SpineCor, HRQoL and similar). A web address (`scoliosisjournal.com`) is left intact.
+**Revisit when:** A new source is added; run `python -m src.ingest.glue_report --camel` and `--rare` on it first.
+
+## 2026-11-21: The smoke test is a sanity check, not an evaluation
+
+**Decision:** `src.rag.smoke` only checks that a few obvious questions return a hit from an acceptable source. Phase 3 will check specific passages.
+**Why:** It passed "When is a brace needed?" even though the top five results were SOSORT recommendations about who builds and checks braces, which does not answer a patient's question. Two causes are suspected: SOSORT has 133 chunks against 9 for NIAMS, and SOSORT is written for clinicians. This is recorded as a known issue to measure in Phase 3 and address in Phase 4 (for example with a reranker or source weighting).

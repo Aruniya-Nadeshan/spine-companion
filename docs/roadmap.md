@@ -2,7 +2,7 @@
 
 Where the project stands and what is left. Tick a box only when the "done when" evidence exists, and update the date below each time.
 
-**Last updated:** 2026-11-19
+**Last updated:** 2026-11-21
 
 **Legend:** `[x]` done · `[~]` in progress (written but not yet verified here) · `[ ]` not started
 
@@ -16,7 +16,7 @@ Where the project stands and what is left. Tick a box only when the "done when" 
 |---|---|
 | 0. Definition and licensing | Done |
 | 1. Ingestion | Done |
-| 2. Retrieval baseline | In progress (code written, not yet run on my machine) |
+| 2. Retrieval baseline | Done (works; known weakness on plain-language treatment questions) |
 | 2b. Answer generation | Not started |
 | 3. Evaluation | Not started |
 | 4. Retrieval improvements | Not started |
@@ -47,24 +47,26 @@ Where the project stands and what is left. Tick a box only when the "done when" 
 - [x] JATS XML extractor for the Europe PMC route
 - [x] Cleaning and a per-document quality check that stops the run on failure
 - [x] Processed JSON per document with attribution attached
-- [x] 32 tests passing
+- [x] 90 tests passing
 - [x] Corpus ingested: SOSORT 73 sections (~157,000 characters), NIAMS overview 4 sections, NIAMS diagnosis and treatment 4 sections
-- [ ] SOSORT section check reviewed (headings, longest section, no author or affiliation junk)
+- [x] Text quality reviewed on the real data: glued words traced to their cause and fixed in the extractor, boilerplate sections dropped, diagnostics added (`glue_report`: `--chars`, `--rare`, `--camel`)
+- [x] Conservative repair step with a dictionary guard; every repair logged
 
 **Done when:** all three sources pass the quality check and I have looked at what each one produced. (Last item still open.)
 
 ## Phase 2: Retrieval baseline
 
-- [ ] Python 3.11 environment working (`python --version` shows 3.11, `pytest` passes)
-- [~] Chunker, embedder, ChromaDB index and search CLI written (49 tests pass in the sandbox with a stand-in embedder)
-- [ ] `python -m src.rag.build_index` runs on my machine; chunk-size table reviewed
-- [ ] `python -m src.rag.search "..."` returns sensible passages with attribution
-- [ ] `python -m src.rag.smoke` reviewed (a FAIL may mean the expectation is wrong, so check the top hit)
-- [ ] Python-version decision added to `docs/decisions.md`
-- [ ] Phase 2 explain-back answers written in `docs/log.md`
-- [ ] Committed and pushed
+- [x] Python 3.11 environment working
+- [x] Chunker, embedder, ChromaDB index and search CLI written and tested
+- [x] `python -m src.rag.build_index` runs on my machine (142 chunks, median about 220 words, minimum 40)
+- [x] `python -m src.rag.search "..."` returns sensible passages with attribution (good on "what is a Cobb angle", weak on "when is a brace needed")
+- [x] `python -m src.rag.smoke` reviewed (6 of 6 pass, but it only checks sources, so it is a sanity check, not an evaluation)
+- [x] Small chunks merged; boilerplate sections excluded
+- [x] Python-version and retrieval decisions recorded in `docs/decisions.md`
+- [x] Phase 2 explain-back answers drafted in `docs/log.md` (restate them in my own words before interviews)
+- [ ] Latest ingestion and glued-text fixes committed and pushed
 
-**Done when:** I can ask five questions of my own on the command line and explain, for each, why the top result was chosen.
+**Done when:** I can ask five questions of my own on the command line and explain, for each, why the top result was chosen. (Known weakness to measure in Phase 3: plain-language treatment questions such as "when is a brace needed?" return clinician-oriented passages.)
 
 ## Phase 2b: Answer generation
 
@@ -144,6 +146,7 @@ Where the project stands and what is left. Tick a box only when the "done when" 
 
 - [ ] Confirm the clinician or physiotherapist review is possible (scope open question)
 - [ ] Decide whether v1 needs a feedback mechanism
+- [ ] Set `HF_HUB_OFFLINE=1` when the model is already cached, to skip harmless network retries
 - [ ] Revisit the embedding model and chunk size after Phase 3 (settings live in `src/rag/config.py`)
 
 ## How to update this file
