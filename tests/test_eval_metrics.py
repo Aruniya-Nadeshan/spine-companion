@@ -102,3 +102,23 @@ def test_find_text_returns_source_section_and_snippet():
                                            {"heading": "B", "paragraphs": ["Bracing may be needed."]}]}]
     ((source, idx, heading, snippet),) = find_text(docs, "bracing")
     assert (source, idx, heading) == ("niams", 1, "B") and "Bracing may be needed." in snippet
+
+
+def test_show_run_format_lists_top_results_and_filters_misses():
+    from src.eval.show_run import format_rows
+    rows = [
+        {"id": "q1", "category": "in_scope", "rank": 2, "top_score": 0.81,
+         "top_sources": ["sosort", "niams"], "top_headings": ["Bracing", "Overview"]},
+        {"id": "q2", "category": "in_scope", "rank": None, "top_score": 0.5,
+         "top_sources": ["sosort"], "top_headings": ["Sports"]},
+        {"id": "q3", "category": "out_of_scope", "rank": None, "top_score": 0.4,
+         "top_sources": ["niams"], "top_headings": ["Overview"]},
+    ]
+    questions = [{"id": "q1", "question": "first?"}, {"id": "q2", "question": "second?"}, {"id": "q3", "question": "third?"}]
+    everything = format_rows(rows, questions)
+    assert any(line.startswith("q1  rank=2") for line in everything)
+    assert any(line.startswith("q2  rank=MISS") for line in everything)
+    assert not any(line.startswith("q3") for line in everything)        # out-of-scope hidden by default
+    misses = format_rows(rows, questions, only_misses=True)
+    assert [l for l in misses if l.startswith("q")] == ["q2  rank=MISS top=0.500  second?"]
+    assert "      - sosort > Sports" in misses
