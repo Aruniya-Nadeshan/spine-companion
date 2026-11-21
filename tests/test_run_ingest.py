@@ -59,3 +59,18 @@ def test_process_source_handles_jats_xml(tmp_path):
     saved = json.loads((out / "demo.json").read_text(encoding="utf-8"))
     assert [s["heading"] for s in saved["sections"]] == ["Topic 0", "Topic 1", "Topic 2"]
     assert "[1]" not in saved["sections"][1]["paragraphs"][0]
+
+
+def test_process_source_repairs_glued_words_and_records_them(tmp_path):
+    raw, out = tmp_path / "raw", tmp_path / "processed"
+    raw.mkdir()
+    body = "".join(f"<h2>Section {i}</h2><p>{'Scoliosis text is common. ' * 40}</p>" for i in range(3))
+    body += "<p>Scoliosistext appears here.</p>"
+    (raw / "demo.html").write_text(
+        f"<html><head><title>Demo</title></head><body><main>{body}</main></body></html>", encoding="utf-8")
+    process_source(SOURCE, raw, out, skip_fetch=True)
+    saved = json.loads((out / "demo.json").read_text(encoding="utf-8"))
+    all_text = " ".join(p for s in saved["sections"] for p in s["paragraphs"])
+    assert "Scoliosistext" not in all_text
+    assert "Scoliosis text appears here" in all_text
+    assert saved["repairs"] == [{"from": "Scoliosistext", "to": "Scoliosis text", "count": 1}]

@@ -7,6 +7,13 @@ def clean_text(text):
     text = unicodedata.normalize("NFKC", text)
     text = text.replace("\u00a0", " ")
     text = re.sub(r"\s+", " ", text)
+    # Missing space after punctuation: "following:Methodology", "(...).It reports".
+    text = re.sub(r"(?<=[a-z])[:;](?=[A-Z][a-z])", lambda m: m.group(0) + " ", text)
+    text = re.sub(r"(?<=\))[.,;:](?=[A-Z][a-z])", lambda m: m.group(0) + " ", text)
+    # Removing citation numbers can leave empty brackets behind: "[]", "[,, \u2013]", "(,)".
+    text = re.sub(r"\[[\s,;\u2013\u2014-]*\]", "", text)
+    text = re.sub(r"\([\s,;\u2013\u2014-]*\)", "", text)
+    text = re.sub(r"\s+", " ", text)
     # get_text(" ") leaves a space before punctuation: "word ," -> "word,"
     text = re.sub(r"\s+([.,;:!?)\]])", r"\1", text)
     text = re.sub(r"([(\[])\s+", r"\1", text)

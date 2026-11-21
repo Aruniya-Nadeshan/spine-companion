@@ -25,7 +25,7 @@ DOCS = [
 
 @pytest.fixture
 def index_dir(tmp_path, fake_embedder):
-    build_index(chunk_all(DOCS), fake_embedder, index_dir=tmp_path / "idx")
+    build_index(chunk_all(DOCS, min_words=0), fake_embedder, index_dir=tmp_path / "idx")
     return tmp_path / "idx"
 
 
@@ -48,7 +48,7 @@ def test_k_larger_than_index_does_not_crash(index_dir, fake_embedder):
 
 
 def test_rebuilding_does_not_duplicate_chunks(tmp_path, fake_embedder):
-    chunks = chunk_all(DOCS)
+    chunks = chunk_all(DOCS, min_words=0)
     build_index(chunks, fake_embedder, index_dir=tmp_path / "idx")
     build_index(chunks, fake_embedder, index_dir=tmp_path / "idx")
     assert open_collection(tmp_path / "idx").count() == len(chunks)

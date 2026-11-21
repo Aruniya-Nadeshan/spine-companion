@@ -10,6 +10,8 @@ QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 CHUNK_TARGET_WORDS = 250   # aim for chunks of about this many words
 CHUNK_OVERLAP_WORDS = 40   # repeat roughly this many words between neighbours
 MAX_WARN_WORDS = 350       # warn if a chunk is bigger (model reads ~512 tokens)
+MIN_CHUNK_WORDS = 40       # chunks smaller than this are merged into a neighbour
+MAX_MERGED_WORDS = 350     # never merge into a chunk that would exceed this size
 
 PROCESSED_DIR = "data/processed"
 INDEX_DIR = "data/index"

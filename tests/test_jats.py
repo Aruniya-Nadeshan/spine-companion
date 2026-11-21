@@ -49,3 +49,47 @@ def test_extract_document_dispatches_by_format():
     assert extract_document(JATS, "jats-xml")["title"].startswith("2016 SOSORT")
     html_doc = extract_document("<html><head><title>T</title></head><body><main><p>x</p></main></body></html>", "html")
     assert html_doc["title"] == "T"
+
+
+def test_boilerplate_sections_with_curly_apostrophes_are_dropped():
+    xml = ("<article><body>"
+           "<sec><title>Bracing</title><p>Real content.</p></sec>"
+           "<sec><title>Authors\u2019 contributions</title><p>SN wrote the paper.</p></sec>"
+           "<sec><title>Electronic supplementary material</title><p>Additional file 1.</p></sec>"
+           "</body></article>")
+    headings = [s["heading"] for s in extract_jats(xml)["sections"]]
+    assert headings == ["Bracing"]
+
+
+NESTED = """<article><body><sec><title>Aims</title>
+<p>The goals are the following:<list><list-item><p>To prevent or treat respiratory dysfunction</p></list-item><list-item><p>To prevent or treat spinal pain syndromes</p></list-item><list-item><p>To improve aesthetics via posture</p></list-item></list>Results follow.</p>
+</sec></body></article>"""
+
+
+def test_list_nested_in_a_paragraph_becomes_separate_paragraphs():
+    (section,) = extract_jats(NESTED)["sections"]
+    assert section["paragraphs"] == [
+        "The goals are the following:",
+        "To prevent or treat respiratory dysfunction",
+        "To prevent or treat spinal pain syndromes",
+        "To improve aesthetics via posture",
+        "Results follow.",
+    ]
+
+
+def test_inline_markup_does_not_add_spaces_but_block_markup_does():
+    xml = ("<article><body><sec><title>T</title>"
+           "<p>The <italic>Cobb</italic> angle is Cobb<italic>-based</italic>.</p>"
+           "<p>Intro<boxed-text><p>Boxed note</p></boxed-text>after</p>"
+           "</sec></body></article>")
+    paragraphs = extract_jats(xml)["sections"][0]["paragraphs"]
+    assert paragraphs[0] == "The Cobb angle is Cobb-based."
+    assert "Intro" in paragraphs[1] and " Boxed note " in paragraphs[1] and "after" in paragraphs[1]
+    assert "IntroBoxed" not in paragraphs[1] and "noteafter" not in paragraphs[1]
+
+
+def test_nested_list_items_are_not_duplicated():
+    xml = ("<article><body><sec><title>T</title><list>"
+           "<list-item><p>Outer</p><list><list-item><p>Inner</p></list-item></list></list-item>"
+           "</list></sec></body></article>")
+    assert extract_jats(xml)["sections"][0]["paragraphs"] == ["Outer", "Inner"]

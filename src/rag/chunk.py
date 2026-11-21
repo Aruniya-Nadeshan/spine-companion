@@ -12,7 +12,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.rag.config import CHUNK_OVERLAP_WORDS, CHUNK_TARGET_WORDS
+from src.rag.config import (CHUNK_OVERLAP_WORDS, CHUNK_TARGET_WORDS, MAX_MERGED_WORDS,
+                            MIN_CHUNK_WORDS)
 
 # Split after . ! ? when the next sentence starts with a capital, digit or bracket.
 # Known limitation: abbreviations such as "e.g. Smith" can be split wrongly.
@@ -65,7 +66,37 @@ def split_text(text, target=CHUNK_TARGET_WORDS, overlap=CHUNK_OVERLAP_WORDS):
     return pieces
 
 
-def chunk_document(doc, target=CHUNK_TARGET_WORDS, overlap=CHUNK_OVERLAP_WORDS):
+def _absorb(keeper, small, small_first):
+    """Fold `small` into `keeper`, labelling it with its own heading so nothing is lost."""
+    labelled = f"{small.heading}: {small.text}"
+    keeper.text = f"{labelled}\n\n{keeper.text}" if small_first else f"{keeper.text}\n\n{labelled}"
+    keeper.embed_text = f"{keeper.doc_title} | {keeper.heading}\n{keeper.text}"
+    keeper.metadata["n_words"] = keeper.n_words
+    merged = keeper.metadata.get("merged_headings", "")
+    keeper.metadata["merged_headings"] = f"{merged}; {small.heading}" if merged else small.heading
+
+
+def merge_small_chunks(chunks, min_words=MIN_CHUNK_WORDS, max_words=MAX_MERGED_WORDS):
+    """Merge chunks under min_words into the previous chunk (or the next, at the start)."""
+    if min_words <= 0 or len(chunks) < 2:
+        return chunks
+    result = []
+    for chunk in chunks:
+        if (chunk.n_words < min_words and result
+                and result[-1].n_words + chunk.n_words <= max_words):
+            _absorb(result[-1], chunk, small_first=False)
+        else:
+            result.append(chunk)
+    # A small chunk at the very start has no previous chunk: fold it into the next one.
+    if (len(result) > 1 and result[0].n_words < min_words
+            and result[0].n_words + result[1].n_words <= max_words):
+        _absorb(result[1], result[0], small_first=True)
+        result = result[1:]
+    return result
+
+
+def chunk_document(doc, target=CHUNK_TARGET_WORDS, overlap=CHUNK_OVERLAP_WORDS,
+                   min_words=MIN_CHUNK_WORDS):
     """Turn one processed document (the JSON from ingestion) into Chunk objects."""
     chunks = []
     for s_idx, section in enumerate(doc["sections"]):
@@ -98,7 +129,7 @@ def chunk_document(doc, target=CHUNK_TARGET_WORDS, overlap=CHUNK_OVERLAP_WORDS):
                     "n_words": len(piece.split()),
                 },
             ))
-    return chunks
+    return merge_small_chunks(chunks, min_words)
 
 
 def load_processed_docs(processed_dir):
@@ -110,8 +141,9 @@ def load_processed_docs(processed_dir):
     return [json.loads(p.read_text(encoding="utf-8")) for p in paths]
 
 
-def chunk_all(docs, target=CHUNK_TARGET_WORDS, overlap=CHUNK_OVERLAP_WORDS):
+def chunk_all(docs, target=CHUNK_TARGET_WORDS, overlap=CHUNK_OVERLAP_WORDS,
+              min_words=MIN_CHUNK_WORDS):
     chunks = []
     for doc in docs:
-        chunks.extend(chunk_document(doc, target, overlap))
+        chunks.extend(chunk_document(doc, target, overlap, min_words))
     return chunks

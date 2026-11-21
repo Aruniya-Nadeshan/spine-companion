@@ -92,3 +92,23 @@ def test_a_list_of_real_bullets_is_never_treated_as_navigation():
             "<li>Changes in cell structure.</li></ul></main></body></html>")
     doc = extract_html(html)
     assert doc["sections"][0]["paragraphs"] == ["Genes.", "Hormones.", "Changes in cell structure."]
+
+
+def test_clean_text_removes_empty_citation_brackets():
+    assert clean_text("a high ratio [].") == "a high ratio."
+    assert clean_text("prevalence 0.93 to 12% [,, \u2013]: 2 to 3") == "prevalence 0.93 to 12%: 2 to 3"
+    assert clean_text("see (,) here") == "see here"
+
+
+def test_clean_text_keeps_real_brackets():
+    assert clean_text("a curve of [5\u00b0] or (see below)") == "a curve of [5\u00b0] or (see below)"
+
+
+def test_clean_text_adds_missing_space_after_punctuation_before_a_capitalised_word():
+    assert clean_text("include the following:Methodology and more") == "include the following: Methodology and more"
+    assert clean_text("(below minimum: undertreatment).It reports") == "(below minimum: undertreatment). It reports"
+
+
+def test_clean_text_leaves_urls_numbers_and_normal_punctuation_alone():
+    text = "doi:10.1186/s13013 and http://example.org, ratio 3:1, Fig. 2: Cobb angle"
+    assert clean_text(text) == text

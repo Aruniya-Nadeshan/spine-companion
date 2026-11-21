@@ -14,6 +14,7 @@ from src.ingest.extract import extract_document
 from src.ingest.fetch import fetch_source, raw_path as get_raw_path
 from src.ingest.load_sources import DEFAULT_PATH, load_ingest_sources, write_date_accessed
 from src.ingest.quality import check_quality, count_chars
+from src.ingest.repair import repair_sections
 
 
 class IngestError(Exception):
@@ -33,6 +34,7 @@ def process_source(source, raw_dir, processed_dir, skip_fetch):
     raw_text = raw_path.read_text(encoding="utf-8", errors="replace")
     extracted = extract_document(raw_text, source["format"])
     sections = clean_sections(extracted["sections"])
+    sections, repairs = repair_sections(sections)
 
     problems = check_quality(sections)
     if problems:
@@ -47,6 +49,7 @@ def process_source(source, raw_dir, processed_dir, skip_fetch):
         "attribution": source["attribution"],
         "date_accessed": accessed,
         "n_chars": count_chars(sections),
+        "repairs": repairs,  # glued words that were split; review them with --show-repairs
         "sections": sections,
     }
     out = Path(processed_dir)
@@ -63,6 +66,8 @@ def main():
     parser.add_argument("--processed-dir", default="data/processed")
     parser.add_argument("--skip-fetch", action="store_true")
     parser.add_argument("--only", help="ingest just this source id")
+    parser.add_argument("--show-repairs", action="store_true",
+                        help="print every glued-word repair so it can be reviewed")
     args = parser.parse_args()
 
     sources = load_ingest_sources(args.sources)
@@ -73,11 +78,14 @@ def main():
     print(f"Ingesting {len(sources)} source(s)...\n")
 
     dates = {}
-    print(f"{'id':28} {'sections':>8} {'chars':>8}")
+    print(f"{'id':38} {'sections':>8} {'chars':>8} {'repairs':>8}")
     for source in sources:
         doc = process_source(source, args.raw_dir, args.processed_dir, args.skip_fetch)
         dates[doc["id"]] = doc["date_accessed"]
-        print(f"{doc['id']:28} {len(doc['sections']):>8} {doc['n_chars']:>8}")
+        print(f"{doc['id']:38} {len(doc['sections']):>8} {doc['n_chars']:>8} {len(doc['repairs']):>8}")
+        if args.show_repairs:
+            for r in doc["repairs"]:
+                print(f"    {r['from']!r} -> {r['to']!r}  (x{r['count']})")
 
     if not args.skip_fetch:
         write_date_accessed(dates, args.sources)

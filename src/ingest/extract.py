@@ -16,7 +16,16 @@ TEXT_TAGS = ["p", "li"]
 # Sections that are not useful knowledge for the chatbot.
 EXCLUDED_HEADINGS = {"references", "reference", "footnotes", "abbreviations",
                      "acknowledgements", "acknowledgments", "funding",
-                     "competing interests", "publisher's note", "author information"}
+                     "competing interests", "publisher's note", "author information",
+                     "electronic supplementary material", "supplementary material",
+                     "additional file", "additional files", "authors' contributions",
+                     "availability of data and materials", "consent for publication",
+                     "ethics approval and consent to participate", "about this article"}
+
+
+def _is_excluded(heading):
+    """Case-insensitive match that treats curly and straight apostrophes alike."""
+    return heading.strip().lower().replace("\u2019", "'") in EXCLUDED_HEADINGS
 
 
 def _is_link_only(el):
@@ -72,8 +81,7 @@ def extract_html(html):
     if current["paragraphs"]:
         sections.append(current)
 
-    sections = [s for s in sections
-                if s["heading"].strip().lower() not in EXCLUDED_HEADINGS]
+    sections = [s for s in sections if not _is_excluded(s["heading"])]
     return {"title": title, "sections": sections}
 
 
@@ -84,6 +92,10 @@ def extract_html(html):
 
 # Elements whose text is not useful prose for retrieval.
 JATS_SKIP = {"table-wrap", "fig", "supplementary-material", "disp-formula"}
+# Elements that start and end a block of text. Their text must be separated from the
+# text around them, or neighbouring items run together ("dysfunctionTo prevent...").
+BLOCK_TAGS = {"p", "list", "list-item", "title", "sec", "caption", "boxed-text",
+              "disp-quote", "def-list", "def-item", "term", "def"}
 
 
 def _local(tag):
@@ -92,28 +104,74 @@ def _local(tag):
 
 
 def _jats_text(el):
-    """All text under el, dropping citation markers like [12] and skipped blocks."""
+    """All text under el, dropping citation markers like [12] and skipped blocks.
+
+    Inline elements (italic, links...) are joined without spaces, as written.
+    Block elements are padded with a space on each side.
+    """
     parts = [el.text or ""]
     for child in el:
         name = _local(child.tag)
         is_citation = name == "xref" and child.get("ref-type") == "bibr"
         if not is_citation and name not in JATS_SKIP:
-            parts.append(_jats_text(child))
+            inner = _jats_text(child)
+            parts.append(f" {inner} " if name in BLOCK_TAGS else inner)
         parts.append(child.tail or "")
     return "".join(parts)
 
 
+def _list_paragraphs(lst):
+    """Each list item becomes its own paragraph."""
+    paragraphs = []
+    for item in lst:
+        if _local(item.tag) == "list-item":
+            paragraphs.extend(_paragraphs_from(item))
+    return paragraphs
+
+
+def _paragraphs_from(el):
+    """Paragraph strings for a <p> or <list-item>.
+
+    A list nested inside a paragraph (or a paragraph inside a list item) is split
+    out, so bullets become separate paragraphs and never run into each other.
+    """
+    out, buf = [], [el.text or ""]
+
+    def flush():
+        text = "".join(buf).strip()
+        if text:
+            out.append(text)
+        buf.clear()
+
+    for child in el:
+        name = _local(child.tag)
+        if name == "list":
+            flush()
+            out.extend(_list_paragraphs(child))
+            buf.append(child.tail or "")
+        elif name == "p":
+            flush()
+            out.extend(_paragraphs_from(child))
+            buf.append(child.tail or "")
+        else:
+            is_citation = name == "xref" and child.get("ref-type") == "bibr"
+            if not is_citation and name not in JATS_SKIP:
+                inner = _jats_text(child)
+                buf.append(f" {inner} " if name in BLOCK_TAGS else inner)
+            buf.append(child.tail or "")
+    flush()
+    return out
+
+
 def _jats_paragraphs(sec):
-    """Paragraphs that sit directly in a <sec>/<abstract>, including list items."""
+    """Paragraphs that sit directly in a <sec>/<abstract>, including lists."""
     paragraphs = []
     for child in sec:
         name = _local(child.tag)
         if name == "p":
-            paragraphs.append(_jats_text(child))
+            paragraphs.extend(_paragraphs_from(child))
         elif name == "list":
-            for item in child.iter():
-                if _local(item.tag) == "p":
-                    paragraphs.append(_jats_text(item))
+            paragraphs.extend(_list_paragraphs(child))
     return paragraphs
 
 
@@ -121,7 +179,7 @@ def _walk_sec(sec, trail, sections):
     """Depth-first walk; each <sec> becomes a section headed 'Parent > Child'."""
     title_el = next((c for c in sec if _local(c.tag) == "title"), None)
     title = _jats_text(title_el).strip() if title_el is not None else ""
-    if title.strip().lower() in EXCLUDED_HEADINGS:
+    if _is_excluded(title):
         return
     trail = trail + [title] if title else trail
     paragraphs = _jats_paragraphs(sec)
