@@ -14,8 +14,10 @@ commit, so every number can be traced back to what produced it.
 """
 import argparse
 import json
+import math
 import statistics
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -61,11 +63,13 @@ def evaluate_retrieval(questions, search_fn, k=5):
     """
     rows = []
     for q in questions:
+        started = time.perf_counter()
         hits = search_fn(q["question"], k)
+        latency_ms = (time.perf_counter() - started) * 1000
         rank = first_relevant_rank(hits, q["evidence"]) if q["category"] == "in_scope" else None
         rows.append({
             "id": q["id"], "category": q["category"], "subtype": q["subtype"],
-            "rank": rank,
+            "rank": rank, "latency_ms": round(latency_ms, 1),
             "top_score": hits[0]["score"] if hits else None,
             "top_sources": [h["metadata"]["source_id"] for h in hits[:3]],
             "top_headings": [h["metadata"]["heading"][:80] for h in hits[:3]],
@@ -85,6 +89,10 @@ def evaluate_retrieval(questions, search_fn, k=5):
         entry["n"] += 1
         entry["hits"] += int(r["rank"] is not None)
     summary["by_subtype"] = by_subtype
+    times = sorted(r["latency_ms"] for r in rows)
+    if times:
+        summary["latency_ms"] = {"median": statistics.median(times), "mean": round(statistics.mean(times), 1),
+                                 "p95": times[min(len(times) - 1, math.ceil(0.95 * len(times)) - 1)]}
     return rows, summary
 
 
@@ -133,6 +141,10 @@ def format_report(summary, rows, split, k):
             s = summary[key]
             lines.append(f"  {key:7} {s['value']:.3f}   95% CI {s['ci95'][0]:.2f}-{s['ci95'][1]:.2f}   ({s['hits']}/{n})")
     lines.append(f"  {'MRR':7} {summary['mrr']:.3f}")
+    if "latency_ms" in summary:
+        lat = summary["latency_ms"]
+        lines.append(f"  retrieval time per question: median {lat['median']:.0f} ms, p95 {lat['p95']:.0f} ms "
+                     "(search and reranking only; the first question includes warm-up)")
     if n < 30:
         lines.append(f"\n  Note: with only {n} questions these numbers are very uncertain (see the CI).")
     lines += ["", "  By subtype (hit@k):"]

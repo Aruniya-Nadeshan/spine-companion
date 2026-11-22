@@ -3,6 +3,7 @@
     python -m src.eval.audit                    # every dev in-scope question
     python -m src.eval.audit --ids q005,q017    # chosen questions
     python -m src.eval.audit --batch 2          # one batch of the dataset
+    python -m src.eval.audit --batch 2 --out audit-b2.txt   # write a UTF-8 file instead of printing
     python -m src.eval.audit --split dev --k 5
 
 For each question it prints the top-k chunks with their text. A chunk marked HIT contains
@@ -17,9 +18,11 @@ later experiments against that new baseline.
 """
 import argparse
 import textwrap
+from pathlib import Path
 
 from src.eval.retrieval_eval import is_hit, select_batch, select_split
 from src.eval.schema import DEFAULT_PATH, load_questions
+from src.rag.console import configure_console
 
 
 def audit_question(question, hits, preview_chars=420):
@@ -43,8 +46,10 @@ def main():
     parser.add_argument("--ids", help="comma-separated question ids")
     parser.add_argument("--batch", type=int, help="only questions from this batch")
     parser.add_argument("--k", type=int, default=5)
+    parser.add_argument("--out", help="write the audit to this file (UTF-8) instead of printing it")
     parser.add_argument("--questions", default=DEFAULT_PATH)
     args = parser.parse_args()
+    configure_console()
 
     from src.rag.embed import Embedder
     from src.rag.search import search
@@ -59,9 +64,14 @@ def main():
         print("Auditing the TEST split from retrieval results leaks information into it. "
               "Audit test labels by reading the sources, not the results.")
     embedder = Embedder()
+    output = []
     for q in questions:
-        for line in audit_question(q, search(q["question"], embedder, k=args.k)):
-            print(line)
+        output.extend(audit_question(q, search(q["question"], embedder, k=args.k)))
+    if args.out:
+        Path(args.out).write_text("\n".join(output) + "\n", encoding="utf-8")
+        print(f"Wrote the audit of {len(questions)} question(s) to {args.out}")
+    else:
+        print("\n".join(output))
 
 
 if __name__ == "__main__":

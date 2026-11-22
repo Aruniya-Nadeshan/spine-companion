@@ -6,6 +6,7 @@
 import argparse
 
 from src.rag.config import COLLECTION, INDEX_DIR, TOP_K
+from src.rag.console import configure_console
 from src.rag.index import open_collection
 
 
@@ -44,6 +45,7 @@ def main():
     parser.add_argument("query")
     parser.add_argument("--k", type=int, default=TOP_K)
     args = parser.parse_args()
+    configure_console()
 
     from src.rag.embed import Embedder
     hits = search(args.query, Embedder(), k=args.k)

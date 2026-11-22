@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 
 from src.eval.schema import load_questions, DEFAULT_PATH
+from src.rag.console import configure_console
 
 RUNS_DIR = "data/eval/runs"
 
@@ -47,6 +48,7 @@ def main():
     parser.add_argument("--all-types", action="store_true", help="include out-of-scope and safety questions")
     parser.add_argument("--questions", default=DEFAULT_PATH)
     args = parser.parse_args()
+    configure_console()
 
     path = Path(args.run) if args.run else latest_run()
     record = json.loads(path.read_text(encoding="utf-8"))

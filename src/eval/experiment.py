@@ -3,6 +3,8 @@
     python -m src.eval.experiment --name no-heading --embed-text none
     python -m src.eval.experiment --name small-chunks --chunk-target 120 --chunk-overlap 20
     python -m src.eval.experiment --name bge-base --model BAAI/bge-base-en-v1.5
+    python -m src.eval.experiment --name hybrid --hybrid
+    python -m src.eval.experiment --name rerank --rerank
 
 The main index (data/index) is never touched. Each experiment builds data/index_exp/<name>,
 evaluates it on the dev split, saves a run file, and prints a question-by-question comparison
@@ -151,11 +153,14 @@ def build_variant(name, docs, embedder, chunk_target, chunk_overlap, min_words, 
     return len(chunks)
 
 
-def run_variant(questions, embedder, name, k, index_root=EXPERIMENT_INDEX_DIR):
-    from src.rag.search import search
+def run_variant(questions, embedder, name, k, index_root=EXPERIMENT_INDEX_DIR, hybrid=False,
+                reranker=None, candidates=20):
+    """Evaluate a variant's index with the chosen retrieval pipeline (vector, hybrid, reranked)."""
+    from src.rag.retrieve import Retriever
     safe = index_name(name)
-    return evaluate_retrieval(
-        questions, lambda text, kk: search(text, embedder, k=kk, index_dir=Path(index_root) / safe, collection=safe), k=k)
+    retriever = Retriever(embedder, Path(index_root) / safe, safe, hybrid=hybrid, reranker=reranker,
+                          candidates=candidates)
+    return evaluate_retrieval(questions, retriever, k=k)
 
 
 def main():
@@ -169,6 +174,10 @@ def main():
     parser.add_argument("--chunk-overlap", type=int, default=config.CHUNK_OVERLAP_WORDS)
     parser.add_argument("--min-chunk-words", type=int, default=config.MIN_CHUNK_WORDS)
     parser.add_argument("--model", default=config.EMBED_MODEL)
+    parser.add_argument("--hybrid", action="store_true", help="fuse vector search with keyword (BM25) search")
+    parser.add_argument("--rerank", nargs="?", const="default",
+                        help="rerank candidates with a cross-encoder (optionally give the model name)")
+    parser.add_argument("--candidates", type=int, default=20, help="candidates passed to the fusion/reranking stage")
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     parser.add_argument("--batch", type=int, help="only questions from this batch (default: all batches)")
@@ -204,7 +213,13 @@ def main():
     embedder = Embedder(args.model)
     n_chunks = build_variant(args.name, docs, embedder, args.chunk_target, args.chunk_overlap,
                              args.min_chunk_words, args.embed_text)
-    rows, summary = run_variant(selected, embedder, args.name, args.k)
+    reranker, rerank_model = None, None
+    if args.rerank:
+        from src.rag.retrieve import DEFAULT_RERANKER, load_reranker
+        rerank_model = DEFAULT_RERANKER if args.rerank == "default" else args.rerank
+        reranker = load_reranker(rerank_model)
+    rows, summary = run_variant(selected, embedder, args.name, args.k, hybrid=args.hybrid,
+                                reranker=reranker, candidates=args.candidates)
     print(format_report(summary, rows, args.split, args.k))
 
     cmp_summary, detail = compare_rows(base_record["rows"], rows)
@@ -212,7 +227,8 @@ def main():
 
     settings = {"embed_model": args.model, "chunk_target_words": args.chunk_target,
                 "chunk_overlap_words": args.chunk_overlap, "min_chunk_words": args.min_chunk_words,
-                "embed_text": args.embed_text, "n_chunks": n_chunks}
+                "embed_text": args.embed_text, "n_chunks": n_chunks, "hybrid": args.hybrid,
+                "reranker": rerank_model, "candidates": args.candidates if (args.hybrid or rerank_model) else None}
     record = {"label": args.name, "change": args.change, "created": datetime.now().isoformat(timespec="seconds"),
               "git_commit": git_commit(), "dataset": fingerprint, "split": args.split,
               "batch": args.batch, "k": args.k, "settings": settings, "dataset_summary": summarise(selected), "summary": summary,

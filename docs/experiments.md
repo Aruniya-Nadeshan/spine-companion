@@ -38,3 +38,6 @@ Run each with `python -m src.eval.experiment --name <name> ...`, one change at a
 | 2026-11-22 | baseline-b2 | batch 2 only (15 in-scope dev), labels not yet audited | efc030cda704 | dev, batch 2 | 15 | 0.533 | 0.600 | 0.667 | 0.580 | Unseen-batch reference for H1/H2 |
 | 2026-11-22 | no-heading-b2 | H1 on unseen batch 2 | efc030cda704 | dev, batch 2 | 15 | 0.533 | 0.667 | 0.667 | 0.589 | 1 better, 0 worse. Weak confirmation |
 | 2026-11-22 | heading-only-b2 | H2 on unseen batch 2 | efc030cda704 | dev, batch 2 | 15 | 0.533 | 0.667 | 0.733 | 0.602 | 2 better, 0 worse. Leading candidate: removing the title from the embedded text is harmless and mildly helpful on both batches |
+
+| 2026-11-22 | hybrid | H5: BM25 + vector, RRF fusion, 20 candidates | efc030cda704 | dev | 37 | 0.622 | 0.838 | 0.865 | 0.736 | Promising: 10 better, 2 worse, p=0.039. Prediction partly wrong (q005 improved via SOSORT "run in families"). Not confirmed: seventh comparison on this set |
+| 2026-11-22 | rerank | H6: MiniLM cross-encoder over top 20 | efc030cda704 | dev | 37 | 0.676 | 0.838 | 0.892 | 0.766 | Promising: 10 better, 2 worse, p=0.039. Prediction held (hit@1 up, q066 rescued). q065 still missed |

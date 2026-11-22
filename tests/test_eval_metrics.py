@@ -130,3 +130,11 @@ def test_select_batch_keeps_one_batch_or_everything():
     assert [q["id"] for q in select_batch(questions, 2)] == ["b", "c"]
     assert [q["id"] for q in select_batch(questions, 1)] == ["a", "d"]
     assert select_batch(questions, None) == questions
+
+
+def test_each_row_records_retrieval_time_and_the_summary_reports_it():
+    questions = [question("a"), question("b"), question("c")]
+    rows, summary = evaluate_retrieval(questions, lambda text, k: [hit("niams", "sideways curve")], k=5)
+    assert all(r["latency_ms"] >= 0 for r in rows)
+    lat = summary["latency_ms"]
+    assert lat["median"] >= 0 and lat["p95"] >= lat["median"] and lat["mean"] >= 0
