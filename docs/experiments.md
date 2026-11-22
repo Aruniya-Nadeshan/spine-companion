@@ -34,3 +34,7 @@ Run each with `python -m src.eval.experiment --name <name> ...`, one change at a
 2. With roughly 20 questions, a clean 3-0 improvement has p = 0.25. Only a larger and cleaner pattern is worth acting on.
 3. Adopt a variant only if it helps some questions and hurts none (or very few), and it makes sense for a reason you can explain.
 4. Confirm a finished design once on the test split, and say so in the Decision column.
+| 2026-11-22 | baseline-v2 | same system; dataset grown to 78 questions (batch 2 added) | (see run) | dev | 37 | 0.541 | 0.730 | 0.811 | 0.644 | New reference on the combined dev set. hit@5 point estimate is below the 0.85 target. |
+| 2026-11-22 | baseline-b2 | batch 2 only (15 in-scope dev), labels not yet audited | efc030cda704 | dev, batch 2 | 15 | 0.533 | 0.600 | 0.667 | 0.580 | Unseen-batch reference for H1/H2 |
+| 2026-11-22 | no-heading-b2 | H1 on unseen batch 2 | efc030cda704 | dev, batch 2 | 15 | 0.533 | 0.667 | 0.667 | 0.589 | 1 better, 0 worse. Weak confirmation |
+| 2026-11-22 | heading-only-b2 | H2 on unseen batch 2 | efc030cda704 | dev, batch 2 | 15 | 0.533 | 0.667 | 0.733 | 0.602 | 2 better, 0 worse. Leading candidate: removing the title from the embedded text is harmless and mildly helpful on both batches |

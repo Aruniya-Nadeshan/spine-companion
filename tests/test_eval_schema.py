@@ -105,3 +105,14 @@ def test_summarise_counts_categories_and_sources():
     assert summary["total"] == 2
     assert summary["by_category"] == {"in_scope": 1, "out_of_scope": 1}
     assert summary["by_source"] == {"niams": 1}
+
+
+def test_batch_defaults_to_one_and_must_be_a_positive_whole_number():
+    from src.eval.schema import question_batch
+    assert question_batch({"id": "x"}) == 1 and question_batch({"id": "x", "batch": 3}) == 3
+    assert validate_questions([q("q1", batch=2)], DOCS)[0] == []
+    errors, _ = validate_questions([q("q1", batch=0)], DOCS)
+    assert any("batch must be" in e for e in errors)
+    errors, _ = validate_questions([q("q1", batch="two")], DOCS)
+    assert any("batch must be" in e for e in errors)
+    assert summarise([q("q1"), q("q2", batch=2)])["by_batch"] == {1: 1, 2: 1}

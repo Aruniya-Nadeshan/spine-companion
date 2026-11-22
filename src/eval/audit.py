@@ -2,6 +2,7 @@
 
     python -m src.eval.audit                    # every dev in-scope question
     python -m src.eval.audit --ids q005,q017    # chosen questions
+    python -m src.eval.audit --batch 2          # one batch of the dataset
     python -m src.eval.audit --split dev --k 5
 
 For each question it prints the top-k chunks with their text. A chunk marked HIT contains
@@ -17,7 +18,7 @@ later experiments against that new baseline.
 import argparse
 import textwrap
 
-from src.eval.retrieval_eval import is_hit, select_split
+from src.eval.retrieval_eval import is_hit, select_batch, select_split
 from src.eval.schema import DEFAULT_PATH, load_questions
 
 
@@ -40,6 +41,7 @@ def main():
     parser = argparse.ArgumentParser(description="Audit evidence labels against retrieved chunks")
     parser.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     parser.add_argument("--ids", help="comma-separated question ids")
+    parser.add_argument("--batch", type=int, help="only questions from this batch")
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--questions", default=DEFAULT_PATH)
     args = parser.parse_args()
@@ -52,7 +54,7 @@ def main():
         wanted = {i.strip() for i in args.ids.split(",")}
         questions = [q for q in questions if q["id"] in wanted]
     else:
-        questions = select_split(questions, args.split)
+        questions = select_batch(select_split(questions, args.split), args.batch)
     if args.split == "test" and not args.ids:
         print("Auditing the TEST split from retrieval results leaks information into it. "
               "Audit test labels by reading the sources, not the results.")

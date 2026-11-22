@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 
 from src.eval.retrieval_eval import (KS, RUNS_DIR, dataset_fingerprint, evaluate_retrieval, format_report,
-                                     git_commit, save_run, select_split)
+                                     git_commit, save_run, select_batch, select_split)
 from src.eval.schema import DEFAULT_PATH, load_questions, summarise, validate_questions
 
 EXPERIMENT_INDEX_DIR = "data/index_exp"
@@ -112,15 +112,28 @@ def markdown_row(record, baseline_label=None):
     return "| " + " | ".join(cells) + " |"
 
 
-def find_baseline(runs_dir=RUNS_DIR, prefix="baseline"):
-    """Newest saved run whose label starts with the prefix."""
+def find_baseline(runs_dir=RUNS_DIR, prefix="baseline", dataset=None, split=None, batch=None):
+    """Newest saved run whose label starts with the prefix and that is comparable.
+
+    When dataset, split or batch are given, only runs made with exactly those are considered,
+    so a comparison can never silently mix different question sets.
+    """
     candidates = []
     for path in sorted(Path(runs_dir).glob("*.json")):
         record = json.loads(path.read_text(encoding="utf-8"))
-        if record["label"].startswith(prefix):
-            candidates.append((path, record))
+        if not record["label"].startswith(prefix):
+            continue
+        if dataset is not None and record.get("dataset") != dataset:
+            continue
+        if split is not None and record.get("split") != split:
+            continue
+        if record.get("batch") != batch:
+            continue
+        candidates.append((path, record))
     if not candidates:
-        raise FileNotFoundError(f"No saved run labelled '{prefix}*' in {runs_dir}")
+        raise FileNotFoundError(
+            f"No saved run labelled '{prefix}*' for dataset={dataset}, split={split}, batch={batch} in {runs_dir}. "
+            "Run the baseline first with the same --split and --batch.")
     return candidates[-1]
 
 
@@ -158,6 +171,7 @@ def main():
     parser.add_argument("--model", default=config.EMBED_MODEL)
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--split", choices=["dev", "test", "all"], default="dev")
+    parser.add_argument("--batch", type=int, help="only questions from this batch (default: all batches)")
     parser.add_argument("--baseline", help="path to a saved run to compare with (default: newest baseline-*)")
     parser.add_argument("--questions", default=DEFAULT_PATH)
     args = parser.parse_args()
@@ -172,17 +186,20 @@ def main():
         raise SystemExit("The question file has errors:\n  - " + "\n  - ".join(errors))
     if args.split == "test":
         print("Running on the TEST split. Do this only to report a finished design, never to choose between variants.")
-    selected = select_split(questions, args.split)
+    selected = select_batch(select_split(questions, args.split), args.batch)
+    fingerprint = dataset_fingerprint(args.questions)
 
     if args.baseline:
         base_path = Path(args.baseline)
         base_record = json.loads(base_path.read_text(encoding="utf-8"))
     else:
-        base_path, base_record = find_baseline()
-    if base_record["dataset"] != dataset_fingerprint(args.questions) or base_record["split"] != args.split:
-        raise SystemExit(f"The baseline ({base_path.name}) used dataset {base_record['dataset']} / split "
-                         f"{base_record['split']}, which differs from now. Re-run the baseline first, otherwise "
-                         "the comparison is not valid.")
+        try:
+            base_path, base_record = find_baseline(dataset=fingerprint, split=args.split, batch=args.batch)
+        except FileNotFoundError as exc:
+            raise SystemExit(str(exc))
+    if (base_record["dataset"], base_record["split"], base_record.get("batch")) != (fingerprint, args.split, args.batch):
+        raise SystemExit(f"The baseline ({base_path.name}) used a different dataset, split or batch. "
+                         "Re-run the baseline first, otherwise the comparison is not valid.")
 
     embedder = Embedder(args.model)
     n_chunks = build_variant(args.name, docs, embedder, args.chunk_target, args.chunk_overlap,
@@ -197,8 +214,8 @@ def main():
                 "chunk_overlap_words": args.chunk_overlap, "min_chunk_words": args.min_chunk_words,
                 "embed_text": args.embed_text, "n_chunks": n_chunks}
     record = {"label": args.name, "change": args.change, "created": datetime.now().isoformat(timespec="seconds"),
-              "git_commit": git_commit(), "dataset": dataset_fingerprint(args.questions), "split": args.split,
-              "k": args.k, "settings": settings, "dataset_summary": summarise(selected), "summary": summary,
+              "git_commit": git_commit(), "dataset": fingerprint, "split": args.split,
+              "batch": args.batch, "k": args.k, "settings": settings, "dataset_summary": summarise(selected), "summary": summary,
               "compared_with": base_path.name, "comparison": {k_: v for k_, v in cmp_summary.items()}, "rows": rows}
     out = save_run(record)
     print(f"\nSaved: {out}")

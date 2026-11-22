@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 from src.eval.schema import (DEFAULT_PATH, assign_split, dataset_fingerprint, load_questions,
-                             normalise, summarise, validate_questions)
+                             normalise, question_batch, summarise, validate_questions)
 
 KS = (1, 3, 5)
 RUNS_DIR = "data/eval/runs"
@@ -168,10 +168,16 @@ def select_split(questions, split):
     return questions if split == "all" else [q for q in questions if assign_split(q["id"]) == split]
 
 
+def select_batch(questions, batch):
+    """Keep only questions from one batch (None keeps all)."""
+    return questions if batch is None else [q for q in questions if question_batch(q) == batch]
+
+
 def main():
     parser = argparse.ArgumentParser(description="Evaluate retrieval against the question set")
     parser.add_argument("--label", required=True, help="short name for this run, e.g. baseline")
     parser.add_argument("--split", choices=["dev", "test", "all"], default="dev")
+    parser.add_argument("--batch", type=int, help="only questions from this batch (default: all batches)")
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--questions", default=DEFAULT_PATH)
     args = parser.parse_args()
@@ -194,7 +200,7 @@ def main():
 
     if args.split == "test":
         print("Running on the TEST split. Use it only to report a finished design, never to tune.")
-    selected = select_split(questions, args.split)
+    selected = select_batch(select_split(questions, args.split), args.batch)
     embedder = Embedder()
     rows, summary = evaluate_retrieval(selected, lambda text, k: search(text, embedder, k=k), k=args.k)
     print(format_report(summary, rows, args.split, args.k))
@@ -212,7 +218,7 @@ def main():
     record = {
         "label": args.label, "created": datetime.now().isoformat(timespec="seconds"),
         "git_commit": git_commit(), "dataset": dataset_fingerprint(args.questions),
-        "split": args.split, "k": args.k,
+        "split": args.split, "batch": args.batch, "k": args.k,
         "settings": {"embed_model": config.EMBED_MODEL, "chunk_target_words": config.CHUNK_TARGET_WORDS,
                      "chunk_overlap_words": config.CHUNK_OVERLAP_WORDS, "min_chunk_words": config.MIN_CHUNK_WORDS,
                      "n_chunks": open_collection(config.INDEX_DIR, config.COLLECTION).count()},

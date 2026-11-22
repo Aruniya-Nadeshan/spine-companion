@@ -122,3 +122,11 @@ def test_show_run_format_lists_top_results_and_filters_misses():
     misses = format_rows(rows, questions, only_misses=True)
     assert [l for l in misses if l.startswith("q")] == ["q2  rank=MISS top=0.500  second?"]
     assert "      - sosort > Sports" in misses
+
+
+def test_select_batch_keeps_one_batch_or_everything():
+    from src.eval.retrieval_eval import select_batch
+    questions = [{"id": "a"}, {"id": "b", "batch": 2}, {"id": "c", "batch": 2}, {"id": "d", "batch": 1}]
+    assert [q["id"] for q in select_batch(questions, 2)] == ["b", "c"]
+    assert [q["id"] for q in select_batch(questions, 1)] == ["a", "d"]
+    assert select_batch(questions, None) == questions

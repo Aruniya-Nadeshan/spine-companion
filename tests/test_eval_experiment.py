@@ -89,3 +89,16 @@ def test_index_names_are_made_safe_for_chromadb():
     assert index_name("v1") == "exp-v1"                      # short names are fine because of the prefix
     assert index_name("small chunks (120/20)") == "exp-small-chunks--120-20"
     assert index_name("///") == "exp-experiment"
+
+
+def test_find_baseline_only_returns_runs_with_the_same_dataset_split_and_batch(tmp_path):
+    runs = [("20261121-100000", {"label": "baseline", "dataset": "aaa", "split": "dev", "batch": None}),
+            ("20261121-110000", {"label": "baseline-b2", "dataset": "bbb", "split": "dev", "batch": 2}),
+            ("20261121-120000", {"label": "baseline-new", "dataset": "bbb", "split": "dev", "batch": None})]
+    for stamp, record in runs:
+        (tmp_path / f"{stamp}-{record['label']}.json").write_text(json.dumps(record), encoding="utf-8")
+    assert find_baseline(tmp_path, dataset="bbb", split="dev", batch=2)[1]["label"] == "baseline-b2"
+    assert find_baseline(tmp_path, dataset="bbb", split="dev", batch=None)[1]["label"] == "baseline-new"
+    assert find_baseline(tmp_path, dataset="aaa", split="dev", batch=None)[1]["label"] == "baseline"
+    with pytest.raises(FileNotFoundError, match="same --split and --batch"):
+        find_baseline(tmp_path, dataset="bbb", split="test", batch=None)

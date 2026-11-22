@@ -4,7 +4,10 @@ One question per line in data/eval/questions.jsonl (JSON Lines):
 
     {"id": "q001", "question": "What is scoliosis?", "category": "in_scope",
      "subtype": "basics", "evidence": [{"source_id": "niams-scoliosis-overview",
-     "contains": "sideways curve of the spine"}], "notes": ""}
+     "contains": "sideways curve of the spine"}], "batch": 1, "notes": ""}
+
+"batch" is optional (default 1). Questions written later get a higher number, so a set that
+was never used to choose between designs can be kept for checking those choices afterwards.
 
 Evidence is a short phrase copied from the source text. A retrieved chunk counts as
 correct when it comes from that source AND contains that phrase. Because it does not
@@ -47,6 +50,11 @@ def normalise(text):
                      ("\u2013", "-"), ("\u2014", "-"), ("\u2212", "-"), ("\u00a0", " ")):
         text = text.replace(old, new)
     return " ".join(text.lower().split())
+
+
+def question_batch(question):
+    """The batch a question belongs to (1 if not stated)."""
+    return question.get("batch", 1)
 
 
 def assign_split(question_id):
@@ -104,6 +112,8 @@ def validate_questions(questions, docs):
             warnings.append(f"{qid}: same question text as {seen_questions[key]}")
         seen_questions[key] = qid
 
+        if not isinstance(question_batch(q), int) or question_batch(q) < 1:
+            errors.append(f"{qid}: batch must be a whole number from 1 upwards")
         category, subtype = q["category"], q["subtype"]
         if category not in SUBTYPES:
             errors.append(f"{qid}: unknown category '{category}'")
@@ -139,5 +149,6 @@ def summarise(questions):
         "by_category": dict(Counter(q["category"] for q in questions)),
         "by_subtype": dict(Counter(f"{q['category']}/{q['subtype']}" for q in questions)),
         "by_split": dict(Counter(assign_split(q["id"]) for q in questions)),
+        "by_batch": dict(Counter(question_batch(q) for q in questions)),
         "by_source": dict(Counter(ev["source_id"] for q in questions for ev in q.get("evidence", [])[:1])),
     }
