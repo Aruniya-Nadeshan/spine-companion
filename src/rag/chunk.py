@@ -132,6 +132,25 @@ def chunk_document(doc, target=CHUNK_TARGET_WORDS, overlap=CHUNK_OVERLAP_WORDS,
     return merge_small_chunks(chunks, min_words)
 
 
+def make_children(parent, child_words, overlap=0):
+    """Split a parent chunk into small child chunks for precise matching ("small-to-big").
+
+    A child is what gets embedded and matched. When a child matches, the search returns its
+    parent, so the reader still gets the whole surrounding passage. Children keep the parent's
+    metadata and add parent_id and parent_text.
+    """
+    pieces = split_text(parent.text.replace("\n", " "), child_words, overlap) or [parent.text]
+    children = []
+    for j, piece in enumerate(pieces):
+        meta = {**parent.metadata, "parent_id": parent.id, "parent_text": parent.text,
+                "child_index": j, "n_words": len(piece.split())}
+        children.append(Chunk(
+            id=f"{parent.id}-c{j:02d}", source_id=parent.source_id, doc_title=parent.doc_title,
+            heading=parent.heading, text=piece,
+            embed_text=f"{parent.doc_title} | {parent.heading}\n{piece}", metadata=meta))
+    return children
+
+
 def load_processed_docs(processed_dir):
     """Read every data/processed/*.json file produced by ingestion."""
     paths = sorted(Path(processed_dir).glob("*.json"))

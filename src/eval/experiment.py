@@ -5,6 +5,7 @@
     python -m src.eval.experiment --name bge-base --model BAAI/bge-base-en-v1.5
     python -m src.eval.experiment --name hybrid --hybrid
     python -m src.eval.experiment --name rerank --rerank
+    python -m src.eval.experiment --name small-to-big --child-words 60 --hybrid --rerank --candidates 40
 
 The main index (data/index) is never touched. Each experiment builds data/index_exp/<name>,
 evaluates it on the dev split, saves a run file, and prints a question-by-question comparison
@@ -141,12 +142,19 @@ def find_baseline(runs_dir=RUNS_DIR, prefix="baseline", dataset=None, split=None
 
 # ---------------------------------------------------------------- running a variant
 
-def build_variant(name, docs, embedder, chunk_target, chunk_overlap, min_words, embed_text, index_root=EXPERIMENT_INDEX_DIR):
-    """Chunk and index the corpus with the variant's settings; return the number of chunks."""
-    from src.rag.chunk import chunk_all
+def build_variant(name, docs, embedder, chunk_target, chunk_overlap, min_words, embed_text,
+                  index_root=EXPERIMENT_INDEX_DIR, child_words=None):
+    """Chunk and index the corpus with the variant's settings; return the number of indexed chunks.
+
+    With child_words, each parent chunk is split into smaller children that are embedded and
+    matched, while search results return the parent (small-to-big).
+    """
+    from src.rag.chunk import chunk_all, make_children
     from src.rag.index import build_index
 
     chunks = chunk_all(docs, chunk_target, chunk_overlap, min_words)
+    if child_words:
+        chunks = [child for parent in chunks for child in make_children(parent, child_words)]
     apply_embed_text_mode(chunks, embed_text)
     safe = index_name(name)
     build_index(chunks, embedder, index_dir=Path(index_root) / safe, collection=safe)
@@ -174,6 +182,7 @@ def main():
     parser.add_argument("--chunk-overlap", type=int, default=config.CHUNK_OVERLAP_WORDS)
     parser.add_argument("--min-chunk-words", type=int, default=config.MIN_CHUNK_WORDS)
     parser.add_argument("--model", default=config.EMBED_MODEL)
+    parser.add_argument("--child-words", type=int, help="small-to-big: match on child chunks of about this many words, return the parent")
     parser.add_argument("--hybrid", action="store_true", help="fuse vector search with keyword (BM25) search")
     parser.add_argument("--rerank", nargs="?", const="default",
                         help="rerank candidates with a cross-encoder (optionally give the model name)")
@@ -212,7 +221,7 @@ def main():
 
     embedder = Embedder(args.model)
     n_chunks = build_variant(args.name, docs, embedder, args.chunk_target, args.chunk_overlap,
-                             args.min_chunk_words, args.embed_text)
+                             args.min_chunk_words, args.embed_text, child_words=args.child_words)
     reranker, rerank_model = None, None
     if args.rerank:
         from src.rag.retrieve import DEFAULT_RERANKER, load_reranker
@@ -227,7 +236,7 @@ def main():
 
     settings = {"embed_model": args.model, "chunk_target_words": args.chunk_target,
                 "chunk_overlap_words": args.chunk_overlap, "min_chunk_words": args.min_chunk_words,
-                "embed_text": args.embed_text, "n_chunks": n_chunks, "hybrid": args.hybrid,
+                "embed_text": args.embed_text, "n_chunks": n_chunks, "child_words": args.child_words, "hybrid": args.hybrid,
                 "reranker": rerank_model, "candidates": args.candidates if (args.hybrid or rerank_model) else None}
     record = {"label": args.name, "change": args.change, "created": datetime.now().isoformat(timespec="seconds"),
               "git_commit": git_commit(), "dataset": fingerprint, "split": args.split,

@@ -98,3 +98,51 @@ def test_run_variant_accepts_the_new_options(index, fake_embedder):
                   "evidence": [{"source_id": "d", "contains": "changed for a new one"}]}]
     rows, summary = run_variant(questions, fake_embedder, "t", 3, index_root=index, hybrid=True, candidates=3)
     assert rows[0]["rank"] == 1 and summary["hit@1"]["value"] == 1.0
+
+
+def long_parent_doc():
+    filler = "Scoliosis is described in general terms and many classifications exist for it. " * 8
+    return {"id": "d", "title": "Guide", "publisher": "P", "url": "u", "licence": "L", "attribution": "A",
+            "date_accessed": "2026-11-23",
+            "sections": [
+                {"heading": "Definitions", "paragraphs": [filler + "A shorter lower limb can cause a functional curve of the spine. " + filler]},
+                {"heading": "Bracing", "paragraphs": ["The brace is worn for many hours each day by growing children. " * 6]}]}
+
+
+def test_make_children_keeps_the_parent_text_and_metadata():
+    from src.rag.chunk import make_children
+    (parent,) = [c for c in chunk_document(long_parent_doc(), min_words=0) if c.heading == "Definitions"][:1]
+    children = make_children(parent, 40)
+    assert len(children) > 2 and all(c.n_words <= 60 for c in children)
+    assert all(c.metadata["parent_id"] == parent.id and c.metadata["parent_text"] == parent.text for c in children)
+    assert [c.id for c in children][0].endswith("-c00") and len({c.id for c in children}) == len(children)
+
+
+def test_small_to_big_returns_the_whole_parent_once(tmp_path, fake_embedder):
+    from src.eval.experiment import index_name
+    build_variant("s2b", [long_parent_doc()], fake_embedder, 250, 40, 0, "none", index_root=tmp_path, child_words=40)
+    name = index_name("s2b")
+    hits = Retriever(fake_embedder, tmp_path / name, name, candidates=30)("shorter lower limb functional curve", 5)
+    assert hits[0]["metadata"]["heading"] == "Definitions"
+    assert "shorter lower limb" in hits[0]["text"] and len(hits[0]["text"].split()) > 80   # the parent, not a fragment
+    keys = [(h["metadata"]["source_id"], h["metadata"]["piece_index"], h["metadata"]["section_index"]) for h in hits]
+    assert len(set(keys)) == len(keys)                                # each parent appears once
+    assert all("parent_text" not in h["metadata"] for h in hits)
+
+
+def test_small_to_big_works_with_hybrid_and_rerank(tmp_path, fake_embedder):
+    from src.eval.experiment import index_name
+    build_variant("s2b2", [long_parent_doc()], fake_embedder, 250, 40, 0, "none", index_root=tmp_path, child_words=40)
+    name = index_name("s2b2")
+    retriever = Retriever(fake_embedder, tmp_path / name, name, hybrid=True, reranker=KeywordReranker(), candidates=30)
+    hits = retriever("lower limb curve", 3)
+    assert hits and all(len(h["text"].split()) > 40 for h in hits)
+
+
+def test_fusion_keeps_different_children_of_the_same_parent_apart():
+    def child(j):
+        return {"text": f"c{j}", "score": 0.0,
+                "metadata": {"source_id": "a", "section_index": 1, "piece_index": 0, "child_index": j}}
+    fused = reciprocal_rank_fusion([[child(0), child(1)], [child(1), child(2)]], k=60)
+    assert [h["metadata"]["child_index"] for h in fused][0] == 1          # in both lists
+    assert {h["metadata"]["child_index"] for h in fused} == {0, 1, 2}

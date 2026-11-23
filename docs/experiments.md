@@ -41,3 +41,6 @@ Run each with `python -m src.eval.experiment --name <name> ...`, one change at a
 
 | 2026-11-22 | hybrid | H5: BM25 + vector, RRF fusion, 20 candidates | efc030cda704 | dev | 37 | 0.622 | 0.838 | 0.865 | 0.736 | Promising: 10 better, 2 worse, p=0.039. Prediction partly wrong (q005 improved via SOSORT "run in families"). Not confirmed: seventh comparison on this set |
 | 2026-11-22 | rerank | H6: MiniLM cross-encoder over top 20 | efc030cda704 | dev | 37 | 0.676 | 0.838 | 0.892 | 0.766 | Promising: 10 better, 2 worse, p=0.039. Prediction held (hit@1 up, q066 rescued). q065 still missed |
+
+| 2026-11-23 | baseline-b3 | batch 3 only (12 in-scope dev), labels not audited | 1fa79eb2636f | dev, batch 3 | 12 | 0.333 | 0.500 | 0.500 | 0.417 | Fresh-question reference |
+| 2026-11-23 | designA-b3 | Design A (hybrid + rerank) on unseen batch 3 | 1fa79eb2636f | dev, batch 3 | 12 | 0.500 | 0.500 | 0.583 | 0.521 | Direction held (3 better, 0 worse, p=0.25) but pre-registered hit@3 gain of 0.10 NOT met. Dev numbers overstate generalisation |

@@ -4,6 +4,8 @@
     hybrid      also rank chunks by keyword match (BM25) and fuse the two rankings (RRF)
     rerank      take the top N candidates and let a second model, which reads the question
                 and each passage together, put them in a better order
+    small-to-big  (an index option, see experiment --child-words) match on small child chunks but
+                return the whole parent passage
 
 Each stage is optional, so an experiment can change exactly one thing at a time.
 Every hit is {"text", "score", "metadata"}; "score" belongs to the last stage that ran
@@ -69,8 +71,9 @@ class BM25:
 # ---------------------------------------------------------------- fusion
 
 def chunk_key(hit):
+    """Identify a chunk. Child chunks of one parent differ by child_index."""
     meta = hit["metadata"]
-    return (meta["source_id"], meta["section_index"], meta["piece_index"])
+    return (meta["source_id"], meta["section_index"], meta["piece_index"], meta.get("child_index", 0))
 
 
 def reciprocal_rank_fusion(rankings, k=60):
@@ -114,6 +117,22 @@ class Retriever:
         order = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:n]
         return [{**self._bm25_hits[i], "score": scores[i]} for i in order if scores[i] > 0]
 
+    @staticmethod
+    def _collapse_to_parents(hits):
+        """If the index holds small child chunks, return each matching parent once, best child first."""
+        if not hits or "parent_text" not in hits[0]["metadata"]:
+            return hits
+        seen, parents = set(), []
+        for hit in hits:
+            meta = dict(hit["metadata"])
+            parent_id = meta["parent_id"]
+            if parent_id in seen:
+                continue
+            seen.add(parent_id)
+            text = meta.pop("parent_text")
+            parents.append({"text": text, "score": hit["score"], "metadata": meta})
+        return parents
+
     def __call__(self, question, k):
         n = max(self.candidates, k)
         pool = self._vector(question, n)
@@ -123,7 +142,7 @@ class Retriever:
             scores = self.reranker.predict([(question, hit["text"]) for hit in pool])
             ranked = sorted(zip(scores, pool), key=lambda pair: float(pair[0]), reverse=True)
             pool = [{**hit, "score": float(score)} for score, hit in ranked]
-        return pool[:k]
+        return self._collapse_to_parents(pool)[:k]
 
 
 def load_reranker(model_name=DEFAULT_RERANKER):
