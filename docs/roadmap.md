@@ -2,7 +2,7 @@
 
 Where the project stands and what is left. Tick a box only when the "done when" evidence exists, and update the date below each time.
 
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-23
 
 **Legend:** `[x]` done · `[~]` in progress (written but not yet verified here) · `[ ]` not started
 
@@ -18,8 +18,8 @@ Where the project stands and what is left. Tick a box only when the "done when" 
 | 1. Ingestion | Done |
 | 2. Retrieval baseline | Done (works; known weakness on plain-language treatment questions) |
 | 2b. Answer generation | Not started |
-| 3. Evaluation | Not started |
-| 4. Retrieval improvements | Not started |
+| 3. Evaluation | Retrieval evaluation done; answer-quality evaluation not started |
+| 4. Retrieval improvements | Done: eight experiments run; the better pipeline is not proven (see experiments.md) |
 | 5. Safety | Not started |
 | 6. Product layer | Not started |
 | 7. Ship it | Not started |
@@ -81,26 +81,26 @@ Where the project stands and what is left. Tick a box only when the "done when" 
 
 ## Phase 3: Evaluation (the most important phase for credibility)
 
-- [ ] 30 in-scope questions, each with the expected source passage
-- [ ] 10 out-of-scope questions (personalised advice, medication, adult scoliosis, off-topic)
-- [ ] 10 safety questions (red-flag symptoms, distress)
-- [ ] Metrics script: retrieval hit-rate@5 and MRR
-- [ ] Answer metrics: faithfulness and citation correctness (automatic check plus manual review of a sample)
-- [ ] Baseline results table saved in `docs/` and the results reproducible with one command
-- [ ] Initial targets in `docs/scope.md` section 8 revised against the baseline
+- [x] Question set: 75 in-scope, 22 out-of-scope, 10 safety (107 in three batches), all passing validation
+- [x] Evidence labels by source and phrase; label audit protocol; dev/test split by hash
+- [x] Retrieval metrics: hit@1, hit@3, hit@5, MRR with confidence intervals; per-question comparison and sign test
+- [x] Baseline and results table in `docs/experiments.md`, reproducible with one command
+- [x] Test split run once (baseline and Design A) and reported honestly
+- [ ] Answer metrics: faithfulness and citation correctness (needs Phase 2b)
+- [ ] Audit labels for batches 2 and 3
+- [ ] Revise the targets in `docs/scope.md` section 8 using the measured numbers (retrieval hit@5 on test: 0.77 baseline, 0.89 Design A, each plus or minus about 0.15)
 
-**Done when:** there is a results table I can reproduce and explain.
+**Done when:** the answer metrics exist as well. (Retrieval evaluation is done.)
 
 ## Phase 4: Retrieval improvements (each change measured)
 
-- [ ] Compare chunk sizes and overlaps
-- [ ] Compare embedding models
-- [ ] Hybrid search (keyword plus vectors)
-- [ ] Cross-encoder reranker
-- [ ] Each experiment logged with before-and-after numbers and a decision entry
-- [ ] Only keep a change that has a measured benefit
+- [x] Chunk sizes (smaller chunks rejected), embedding models (bge-base not adopted by the pre-set rule)
+- [x] Hybrid keyword + vector search; cross-encoder reranker; both together ("Design A"); small-to-big (rejected)
+- [x] Each experiment logged with a prediction and an outcome
+- [~] Keep only changes with a measured benefit: Design A raised recall at 5 on every question set but did not improve ranking on the test split, so it is a candidate, not a confirmed gain
+- [ ] Final retrieval choice, made with answer quality (Phase 3b)
 
-**Done when:** the final configuration is justified by the evaluation set, not by habit.
+**Done when:** the final configuration is justified by the evaluation, not by habit.
 
 ## Phase 5: Safety
 
@@ -146,6 +146,7 @@ Where the project stands and what is left. Tick a box only when the "done when" 
 
 - [ ] Confirm the clinician or physiotherapist review is possible (scope open question)
 - [ ] Decide whether v1 needs a feedback mechanism
+- [ ] Write more questions (a new batch) if a firmer retrieval decision is needed; the test split is spent
 - [ ] Set `HF_HUB_OFFLINE=1` when the model is already cached, to skip harmless network retries
 - [ ] Revisit the embedding model and chunk size after Phase 3 (settings live in `src/rag/config.py`)
 

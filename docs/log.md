@@ -134,9 +134,84 @@ That report could only list words it could cut into parts the document used ofte
 
 ---
 
+## Entry 7: Building the evaluation (2026-11-21 to 11-22)
+
+**What I did:** wrote `docs/eval-plan.md`; built a question file (107 questions in three batches) with evidence labels; wrote tools to validate labels, run retrieval, audit labels, view per-question results and compare runs; ran a baseline, audited labels, and measured.
+
+**What I learned**
+- "Looks fine on the questions I try" was wrong: the first smoke test passed a question whose results were poor.
+- Some "failures" were incomplete labels. Judging everything retrieved, not only failures, gave a fairer score.
+- A bigger average hides what changed; comparing question by question (better, worse, same) is more informative at this size.
+
+**Explain-back answers**
+
+*1. Why label evidence as a source plus a phrase and not by chunk id?*
+Chunk ids change whenever chunk size or splitting changes. A phrase from the source stays valid, so the same labels can judge every variant.
+
+*2. Why is the dev/test split decided by a hash of the question id?*
+So nobody, including me, can move a question between splits after seeing which way it helps. Tuning on dev and reporting on test only works if that choice is not influenced by the results.
+
+*3. Why does the report show a confidence interval?*
+With 20 to 50 questions the measured rate could easily be several points away from the true one. The interval shows how far, and a difference smaller than it is not evidence.
+
+*4. Why must questions be written before looking at what retrieval returns?*
+Otherwise the set drifts towards what already works and flatters the system.
+
+*5. Why can't a similarity score reject a question such as "my curve is 38 degrees, should I have surgery?"*
+That question is about scoliosis, so it scores like the answerable ones. Refusing it needs a rule about what the bot may not do, not a measure of how close the text is.
+
+*6. Why audit all retrieved chunks and not only the failures?*
+Fixing only failures can only raise the score. Judging every result by one standard is fair, and each change is written down.
+
+*7. Why isn't a label fix an improvement?*
+The system did not change; only the ruler did. Scores rose from 0.545 to 0.86 hit@5 on dev from the audit alone, which is why later experiments compare with the re-run baseline.
+
+---
+
+## Entry 8: Experiments and what they taught me (2026-11-21 to 11-23)
+
+**What I tested:** removing the document title or heading from the embedded text (H1, H2), smaller chunks (H3), a larger embedding model (H4), keyword plus vector search (H5), a cross-encoder reranker (H6), both together (H8, "Design A"), and small-to-big child chunks (H9). Each had a written prediction. Full table in `docs/experiments.md`.
+
+**Headline results**
+- On dev, Design A (hybrid + rerank) improved 15 questions and worsened 2 against the baseline (p=0.002; hit@5 0.735 to 0.857).
+- On a fresh batch it moved the same way but less (hit@5 0.50 to 0.58, 12 questions).
+- On the independent test split it did not improve the ranking (6 better, 8 worse; hit@1 0.46 to 0.35), though hit@5 rose from 0.77 to 0.89 (3 questions of 26).
+- Smaller chunks, small-to-big and a larger embedding model did not clear my bar.
+- Several of my predictions were wrong, including the cause of the q018 failure and whether keyword search could fix q005.
+
+**What this means:** retrieval is decent but not as good as the dev numbers suggested, and I cannot show that Design A is better than the plain baseline beyond doubt. The decision between them will use answer quality.
+
+**Explain-back answers**
+
+*1. Why write predictions and decision rules before running an experiment?*
+A prediction made afterwards can always be explained away. Writing it first lets me see where my understanding was wrong. The H4 rule stopped me adopting a change that looked tempting.
+
+*2. Why did Design A look much better on dev than on test?*
+I chose it after looking at dev failures, and I ran about ten comparisons on dev, so some wins were luck and some were fitting to those questions. The test split had never influenced anything.
+
+*3. Why compare experiments question by question?*
+An average can move because of one or two questions. Counting how many got better, worse or stayed the same, with a sign test, shows whether the change is consistent.
+
+*4. Why can a reranker only improve results among its candidates?*
+It reorders what the first stage found. If the right passage is not in the top 20, it cannot appear.
+
+*5. Why does reciprocal rank fusion combine rankings and not raw scores?*
+Cosine similarity and BM25 scores are on different scales, so adding them is meaningless. Ranks are comparable.
+
+*6. Why did q065 and q066 fail although the answer is in the corpus?*
+The answer is one sentence inside a long mixed passage, and the question is short. The passage as a whole is about something broader, so it does not look close to the question.
+
+*7. Why can absolute dev numbers not be quoted as the system's performance?*
+Dev questions influenced the design. Only questions the design never saw, such as the test split, give an honest estimate, and even those carry wide intervals with a few dozen questions.
+
+---
+
 ## Known issues
 
-- "When is a brace needed?" returns clinician-oriented SOSORT recommendations; the plain-language NIAMS answer is missed. To be measured in Phase 3.
+- "When is a brace needed?" is a regression case: it worsened under Design A on the test split (rank 1 to 4).
+- Facts buried in long mixed passages are still often missed (q065 surgery rates, q090 leg length, q091 the 10 degree threshold).
+- Labels for batch 2 and batch 3 were never audited, so measured scores on them are probably too low.
+- Dev and test sets are small (49 and 26 in-scope questions), so every difference is uncertain.
 - The corpus is lopsided: SOSORT has 133 chunks, the two NIAMS pages 9.
 - The sources cover children and teens only; there is no adult scoliosis content and little on everyday-life topics.
 - Some oddities are spelled that way in the source and are left as written (for example `informations`, `olysthesis`).
@@ -161,13 +236,19 @@ That report could only list words it could cut into parts the document used ofte
 - **Chunk overlap:** the words repeated between neighbouring chunks so ideas are not cut at a boundary.
 - **Block versus inline XML elements:** block elements (paragraphs, list items, titles) start and end a piece of text and need a space around them; inline elements (italics, links) sit inside a sentence and add none.
 - **Dictionary guard:** a check that a word is not already ordinary English before the repair step is allowed to split it.
+- **hit@k / MRR:** hit@k is the share of questions whose correct passage is in the top k results; MRR is the average of 1 divided by the rank of the first correct passage.
+- **Sign test:** compares how many questions improved with how many got worse and asks how likely that split is if the change did nothing.
+- **Pre-registration:** writing the prediction and the decision rule before running an experiment.
+- **BM25 / hybrid search:** a classic keyword ranking function, combined with vector search by merging the two rankings.
+- **Cross-encoder reranker:** a model that reads the question and a passage together and scores how well it answers, used to reorder a short list of candidates.
+- **Small-to-big retrieval:** match on small chunks but return the larger passage they came from.
 - **OGL (Open Government Licence):** the UK licence under which the NHS makes content reusable, with conditions.
 
 ---
 
 ## Not built yet (so I do not overclaim)
 
-Answer generation; the evaluation set and metrics; retrieval improvements measured against it; safety behaviours and the red-team set; the API and web interface; deployment and CI. Finished so far: the scope and licence work, ingestion, and a baseline retrieval system (chunking, embeddings, vector index, search) that returns relevant passages for some questions and is known to miss others.
+Answer generation and its evaluation (faithfulness, citation correctness); safety behaviours and the red-team set; the API and web interface; deployment and CI. Finished so far: the scope and licence work, ingestion, a retrieval system with two pipelines (plain vector search, and hybrid search with a reranker), and a retrieval evaluation (107 questions, dev/test splits, experiment log) that shows retrieval works for most questions but that the better pipeline is not yet proven.
 
 ## Open questions to revisit
 

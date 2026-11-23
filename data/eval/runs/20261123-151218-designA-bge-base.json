@@ -1,0 +1,1448 @@
+{
+  "label": "designA-bge-base",
+  "change": "H4 on design A: bge-base embeddings",
+  "created": "2026-11-23T15:12:18",
+  "git_commit": "5a52579",
+  "dataset": "1fa79eb2636f",
+  "split": "dev",
+  "batch": null,
+  "k": 5,
+  "settings": {
+    "embed_model": "BAAI/bge-base-en-v1.5",
+    "chunk_target_words": 250,
+    "chunk_overlap_words": 40,
+    "min_chunk_words": 40,
+    "embed_text": "title_heading",
+    "n_chunks": 142,
+    "child_words": null,
+    "hybrid": true,
+    "reranker": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "candidates": 20
+  },
+  "dataset_summary": {
+    "total": 71,
+    "by_category": {
+      "in_scope": 49,
+      "out_of_scope": 16,
+      "safety": 6
+    },
+    "by_subtype": {
+      "in_scope/basics": 18,
+      "in_scope/diagnosis": 6,
+      "out_of_scope/off_topic": 9,
+      "out_of_scope/personal_advice": 2,
+      "in_scope/treatment": 21,
+      "in_scope/living": 4,
+      "out_of_scope/adult": 1,
+      "out_of_scope/diagnosis_request": 3,
+      "safety/red_flag": 2,
+      "safety/distress": 2,
+      "safety/injection": 2,
+      "out_of_scope/medication": 1
+    },
+    "by_split": {
+      "dev": 71
+    },
+    "by_batch": {
+      "1": 35,
+      "2": 20,
+      "3": 16
+    },
+    "by_source": {
+      "niams-scoliosis-overview": 10,
+      "niams-scoliosis-diagnosis-treatment": 18,
+      "sosort-2016": 21
+    }
+  },
+  "summary": {
+    "n_in_scope": 49,
+    "hit@1": {
+      "value": 0.6122448979591837,
+      "ci95": [
+        0.4724574648805242,
+        0.735711856260395
+      ],
+      "hits": 30
+    },
+    "hit@3": {
+      "value": 0.8163265306122449,
+      "ci95": [
+        0.6864212843271743,
+        0.9002377116154164
+      ],
+      "hits": 40
+    },
+    "hit@5": {
+      "value": 0.8979591836734694,
+      "ci95": [
+        0.7824337583502992,
+        0.9556211075129601
+      ],
+      "hits": 44
+    },
+    "mrr": 0.7200680272108845,
+    "by_subtype": {
+      "basics": {
+        "n": 18,
+        "hits": 17
+      },
+      "diagnosis": {
+        "n": 6,
+        "hits": 4
+      },
+      "treatment": {
+        "n": 21,
+        "hits": 19
+      },
+      "living": {
+        "n": 4,
+        "hits": 4
+      }
+    },
+    "latency_ms": {
+      "median": 822.8,
+      "mean": 817.2,
+      "p95": 920.5
+    }
+  },
+  "compared_with": "20261123-073656-baseline-v3.json",
+  "comparison": {
+    "compared": 49,
+    "better": [
+      "q003",
+      "q005",
+      "q016",
+      "q018",
+      "q023",
+      "q029",
+      "q055",
+      "q060",
+      "q062",
+      "q065",
+      "q066",
+      "q071",
+      "q072",
+      "q079",
+      "q081",
+      "q082",
+      "q090"
+    ],
+    "worse": [
+      "q024",
+      "q033"
+    ],
+    "same": [
+      "q001",
+      "q002",
+      "q004",
+      "q011",
+      "q012",
+      "q014",
+      "q017",
+      "q019",
+      "q020",
+      "q021",
+      "q022",
+      "q030",
+      "q031",
+      "q034",
+      "q054",
+      "q057",
+      "q059",
+      "q061",
+      "q063",
+      "q067",
+      "q069",
+      "q070",
+      "q080",
+      "q083",
+      "q084",
+      "q088",
+      "q089",
+      "q091",
+      "q098",
+      "q099"
+    ],
+    "sign_test_p": 0.000728607177734375
+  },
+  "rows": [
+    {
+      "id": "q001",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 562.5,
+      "top_score": 8.232961654663086,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "General information on idiopathic scoliosis > Definitions",
+        "Overview of Scoliosis",
+        "Who Gets Scoliosis?"
+      ]
+    },
+    {
+      "id": "q002",
+      "category": "in_scope",
+      "subtype": "diagnosis",
+      "rank": 1,
+      "latency_ms": 537.3,
+      "top_score": 7.932742118835449,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Diagnosis of Scoliosis",
+        "Overview of Scoliosis",
+        "Assessment > Radiological assessment"
+      ]
+    },
+    {
+      "id": "q003",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 709.7,
+      "top_score": 4.958951950073242,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Symptoms of Scoliosis",
+        "Treatment of Scoliosis",
+        "Overview of Scoliosis"
+      ]
+    },
+    {
+      "id": "q004",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 773.0,
+      "top_score": 9.747262001037598,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Who Gets Scoliosis?",
+        "Assessment > Surface assessment > Other evaluation > Joint laxity/hypermobility ",
+        "Assessment > Surface assessment > Other evaluation > Joint laxity/hypermobility "
+      ]
+    },
+    {
+      "id": "q005",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 857.1,
+      "top_score": 3.3487632274627686,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "General information on idiopathic scoliosis > Etiology",
+        "Who Gets Scoliosis?",
+        "Symptoms of Scoliosis"
+      ]
+    },
+    {
+      "id": "q009",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 785.4,
+      "top_score": -11.030139923095703,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Conservative treatments",
+        "Assessment > Surface assessment > Surface topography > Static surface topography",
+        "Evidence-based clinical practice approach to idiopathic scoliosis during growth "
+      ]
+    },
+    {
+      "id": "q010",
+      "category": "out_of_scope",
+      "subtype": "personal_advice",
+      "rank": null,
+      "latency_ms": 793.4,
+      "top_score": -3.176074504852295,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Efficacy in adolescents",
+        "Brace treatment > Results > Efficacy in adolescents",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi"
+      ]
+    },
+    {
+      "id": "q011",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 2,
+      "latency_ms": 844.2,
+      "top_score": -0.27420181035995483,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Causes of Scoliosis",
+        "Overview of Scoliosis",
+        "General information on idiopathic scoliosis > Etiology"
+      ]
+    },
+    {
+      "id": "q012",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 782.4,
+      "top_score": 1.8017919063568115,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Causes of Scoliosis",
+        "Symptoms of Scoliosis",
+        "Conservative treatments > Prognostic factors"
+      ]
+    },
+    {
+      "id": "q014",
+      "category": "in_scope",
+      "subtype": "diagnosis",
+      "rank": 1,
+      "latency_ms": 848.4,
+      "top_score": 7.614896774291992,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Diagnosis of Scoliosis",
+        "Assessment > Clinical assessment",
+        "Overview of Scoliosis"
+      ]
+    },
+    {
+      "id": "q016",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 2,
+      "latency_ms": 784.1,
+      "top_score": 1.6893823146820068,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Evidence-based clinical practice approach to idiopathic scoliosis during growth ",
+        "Treatment of Scoliosis",
+        "Who Treats Scoliosis?"
+      ]
+    },
+    {
+      "id": "q017",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 847.5,
+      "top_score": 6.41925573348999,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Treatment of Scoliosis",
+        "Living With Scoliosis"
+      ]
+    },
+    {
+      "id": "q018",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 2,
+      "latency_ms": 916.6,
+      "top_score": -4.168511390686035,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Efficacy in adolescents",
+        "Treatment of Scoliosis",
+        "Conservative treatments other than bracing > Sports activities > Results"
+      ]
+    },
+    {
+      "id": "q019",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 769.2,
+      "top_score": 5.99363899230957,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Treatment of Scoliosis",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi"
+      ]
+    },
+    {
+      "id": "q020",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 873.8,
+      "top_score": 5.690868377685547,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Who Treats Scoliosis?",
+        "Diagnosis of Scoliosis",
+        "Overview of Scoliosis"
+      ]
+    },
+    {
+      "id": "q021",
+      "category": "in_scope",
+      "subtype": "living",
+      "rank": 1,
+      "latency_ms": 734.0,
+      "top_score": 6.920248031616211,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Conservative treatments other than bracing > Sports activities > Results",
+        "Conservative treatments other than bracing > Sports activities > Results"
+      ]
+    },
+    {
+      "id": "q022",
+      "category": "in_scope",
+      "subtype": "living",
+      "rank": 1,
+      "latency_ms": 831.5,
+      "top_score": 4.1525397300720215,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Treatment of Scoliosis",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa"
+      ]
+    },
+    {
+      "id": "q023",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 872.4,
+      "top_score": -1.9170587062835693,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Overview of Scoliosis",
+        "Diagnosis of Scoliosis"
+      ]
+    },
+    {
+      "id": "q024",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 4,
+      "latency_ms": 762.5,
+      "top_score": 4.26776123046875,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Efficacy in adolescents",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa"
+      ]
+    },
+    {
+      "id": "q029",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 3,
+      "latency_ms": 792.9,
+      "top_score": 4.151978015899658,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Assessment > Surface assessment > Other evaluation > Joint laxity/hypermobility ",
+        "Who Gets Scoliosis?",
+        "General information on idiopathic scoliosis > Epidemiology"
+      ]
+    },
+    {
+      "id": "q030",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 815.2,
+      "top_score": 1.4019274711608887,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Treatment of Scoliosis",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa"
+      ]
+    },
+    {
+      "id": "q031",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 3,
+      "latency_ms": 771.6,
+      "top_score": 1.8979809284210205,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Conservative treatments other than bracing > Respiratory function and exercises ",
+        "Conservative treatments"
+      ]
+    },
+    {
+      "id": "q033",
+      "category": "in_scope",
+      "subtype": "diagnosis",
+      "rank": null,
+      "latency_ms": 804.5,
+      "top_score": -8.24366569519043,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Assessment > Radiological assessment",
+        "Assessment > Surface assessment > Surface topography > Static surface topography",
+        "Assessment > Radiological assessment"
+      ]
+    },
+    {
+      "id": "q034",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 2,
+      "latency_ms": 847.4,
+      "top_score": -1.391520380973816,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Conservative treatments > Prognostic factors",
+        "General information on idiopathic scoliosis > Natural history"
+      ]
+    },
+    {
+      "id": "q035",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 889.1,
+      "top_score": -7.976752758026123,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Living With Scoliosis",
+        "Who Treats Scoliosis?"
+      ]
+    },
+    {
+      "id": "q036",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 787.0,
+      "top_score": -10.910968780517578,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Assessment > Clinical assessment",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa"
+      ]
+    },
+    {
+      "id": "q040",
+      "category": "out_of_scope",
+      "subtype": "adult",
+      "rank": null,
+      "latency_ms": 918.5,
+      "top_score": 0.5936129093170166,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Conservative treatments other than bracing > Respiratory function and exercises "
+      ]
+    },
+    {
+      "id": "q041",
+      "category": "out_of_scope",
+      "subtype": "diagnosis_request",
+      "rank": null,
+      "latency_ms": 805.6,
+      "top_score": -1.2050837278366089,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Assessment > Surface assessment > Surface topography > Dynamic surface topograph"
+      ]
+    },
+    {
+      "id": "q042",
+      "category": "out_of_scope",
+      "subtype": "diagnosis_request",
+      "rank": null,
+      "latency_ms": 920.5,
+      "top_score": 0.8525111675262451,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Symptoms of Scoliosis",
+        "Overview of Scoliosis",
+        "General information on idiopathic scoliosis > Definitions"
+      ]
+    },
+    {
+      "id": "q043",
+      "category": "safety",
+      "subtype": "red_flag",
+      "rank": null,
+      "latency_ms": 877.6,
+      "top_score": -1.7819349765777588,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Symptoms of Scoliosis",
+        "Who Gets Scoliosis?"
+      ]
+    },
+    {
+      "id": "q045",
+      "category": "safety",
+      "subtype": "red_flag",
+      "rank": null,
+      "latency_ms": 870.4,
+      "top_score": -8.845087051391602,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Evidence-based clinical practice approach to idiopathic scoliosis during growth ",
+        "Conservative treatments other than bracing > Physiotherapeutic specific exercise",
+        "Living With Scoliosis"
+      ]
+    },
+    {
+      "id": "q047",
+      "category": "safety",
+      "subtype": "distress",
+      "rank": null,
+      "latency_ms": 875.2,
+      "top_score": -9.107444763183594,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Conservative treatments other than bracing > Physiotherapeutic specific exercise",
+        "Brace treatment > Results > Are there braces that are better than others?",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa"
+      ]
+    },
+    {
+      "id": "q049",
+      "category": "safety",
+      "subtype": "distress",
+      "rank": null,
+      "latency_ms": 935.1,
+      "top_score": -3.519758462905884,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Overview of Scoliosis",
+        "General information on idiopathic scoliosis > Definitions"
+      ]
+    },
+    {
+      "id": "q050",
+      "category": "safety",
+      "subtype": "injection",
+      "rank": null,
+      "latency_ms": 743.8,
+      "top_score": -4.858842372894287,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others?",
+        "Brace treatment > Results > Are there braces that are better than others?",
+        "Brace treatment > Results > Are there braces that are better than others?"
+      ]
+    },
+    {
+      "id": "q051",
+      "category": "safety",
+      "subtype": "injection",
+      "rank": null,
+      "latency_ms": 864.4,
+      "top_score": -5.034719467163086,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Efficacy in adolescents",
+        "Diagnosis of Scoliosis",
+        "Overview of Scoliosis"
+      ]
+    },
+    {
+      "id": "q054",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 887.3,
+      "top_score": 2.770139217376709,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Symptoms of Scoliosis",
+        "Who Gets Scoliosis?",
+        "Overview of Scoliosis"
+      ]
+    },
+    {
+      "id": "q055",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 3,
+      "latency_ms": 985.3,
+      "top_score": 2.1629159450531006,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Overview of Scoliosis",
+        "Treatment of Scoliosis",
+        "Causes of Scoliosis"
+      ]
+    },
+    {
+      "id": "q057",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 825.0,
+      "top_score": 7.737458229064941,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Treatment of Scoliosis",
+        "Diagnosis of Scoliosis"
+      ]
+    },
+    {
+      "id": "q059",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 754.5,
+      "top_score": 5.015976905822754,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Overview of Scoliosis",
+        "Living With Scoliosis"
+      ]
+    },
+    {
+      "id": "q060",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 2,
+      "latency_ms": 776.7,
+      "top_score": 4.306459426879883,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Who Treats Scoliosis?",
+        "Treatment of Scoliosis",
+        "Conservative treatments other than bracing > Physiotherapeutic scoliosis-specifi"
+      ]
+    },
+    {
+      "id": "q061",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 815.8,
+      "top_score": 4.058475494384766,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Conservative treatments > Prognostic factors",
+        "General information on idiopathic scoliosis > Natural history"
+      ]
+    },
+    {
+      "id": "q062",
+      "category": "in_scope",
+      "subtype": "living",
+      "rank": 1,
+      "latency_ms": 908.3,
+      "top_score": 4.026821136474609,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Symptoms of Scoliosis",
+        "Overview of Scoliosis"
+      ]
+    },
+    {
+      "id": "q063",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 866.5,
+      "top_score": 4.803677082061768,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Overview of Scoliosis",
+        "General information on idiopathic scoliosis > Definitions",
+        "General information on idiopathic scoliosis > Definitions"
+      ]
+    },
+    {
+      "id": "q065",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 5,
+      "latency_ms": 885.6,
+      "top_score": 2.343881130218506,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Efficacy in adolescents",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi"
+      ]
+    },
+    {
+      "id": "q066",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 2,
+      "latency_ms": 822.8,
+      "top_score": 5.701066017150879,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "sosort-2016",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "Who Gets Scoliosis?",
+        "General information on idiopathic scoliosis > Epidemiology",
+        "Symptoms of Scoliosis"
+      ]
+    },
+    {
+      "id": "q067",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 862.8,
+      "top_score": -0.8069671392440796,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "General information on idiopathic scoliosis > Natural history",
+        "Evidence-based clinical practice approach to idiopathic scoliosis during growth ",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi"
+      ]
+    },
+    {
+      "id": "q069",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 854.7,
+      "top_score": 5.503444194793701,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Conservative treatments",
+        "Conservative treatments",
+        "Brace treatment > Results > Are there braces that are better than others? > Team"
+      ]
+    },
+    {
+      "id": "q070",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 732.5,
+      "top_score": 2.3955986499786377,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Team",
+        "Treatment of Scoliosis",
+        "Treatment of Scoliosis"
+      ]
+    },
+    {
+      "id": "q071",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 759.7,
+      "top_score": 1.3259817361831665,
+      "top_sources": [
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Team",
+        "Treatment of Scoliosis",
+        "Brace treatment > Results > Are there braces that are better than others? > Team"
+      ]
+    },
+    {
+      "id": "q072",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 4,
+      "latency_ms": 780.4,
+      "top_score": 5.07048225402832,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Efficacy in adolescents",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa"
+      ]
+    },
+    {
+      "id": "q074",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 872.6,
+      "top_score": -10.763200759887695,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Conservative treatments > Prognostic factors",
+        "Brace treatment > Results > Are there braces that are better than others? > Dosa",
+        "Assessment > Clinical assessment"
+      ]
+    },
+    {
+      "id": "q075",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 857.4,
+      "top_score": -6.685176372528076,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Overview of Scoliosis",
+        "Who Treats Scoliosis?"
+      ]
+    },
+    {
+      "id": "q076",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 712.8,
+      "top_score": -6.374604225158691,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Symptoms of Scoliosis",
+        "Overview of Scoliosis",
+        "Conservative treatments other than bracing > Respiratory function and exercises "
+      ]
+    },
+    {
+      "id": "q077",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 770.8,
+      "top_score": -10.478982925415039,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Conservative treatments other than bracing > Sports activities > Methods",
+        "Conservative treatments other than bracing > Sports activities > Results",
+        "Conservative treatments other than bracing > Sports activities > Results"
+      ]
+    },
+    {
+      "id": "q078",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 868.1,
+      "top_score": -9.637370109558105,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Conservative treatments other than bracing > Physiotherapeutic scoliosis-specifi",
+        "Conservative treatments",
+        "Living With Scoliosis"
+      ]
+    },
+    {
+      "id": "q079",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 863.4,
+      "top_score": 8.051048278808594,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Symptoms of Scoliosis",
+        "Causes of Scoliosis",
+        "Conservative treatments > Prognostic factors"
+      ]
+    },
+    {
+      "id": "q080",
+      "category": "in_scope",
+      "subtype": "diagnosis",
+      "rank": 1,
+      "latency_ms": 938.7,
+      "top_score": 4.162298202514648,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Diagnosis of Scoliosis",
+        "Overview of Scoliosis",
+        "Treatment of Scoliosis"
+      ]
+    },
+    {
+      "id": "q081",
+      "category": "in_scope",
+      "subtype": "diagnosis",
+      "rank": 1,
+      "latency_ms": 919.7,
+      "top_score": 1.561267375946045,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Diagnosis of Scoliosis",
+        "Overview of Scoliosis",
+        "Treatment of Scoliosis"
+      ]
+    },
+    {
+      "id": "q082",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 4,
+      "latency_ms": 738.3,
+      "top_score": 1.1916661262512207,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Assessment > Surface assessment > Other evaluation > Physical capacity evaluatio",
+        "Conservative treatments other than bracing > Respiratory function and exercises ",
+        "Conservative treatments other than bracing > Other conservative treatments > Res"
+      ]
+    },
+    {
+      "id": "q083",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": null,
+      "latency_ms": 829.6,
+      "top_score": 1.9660148620605469,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Treatment of Scoliosis"
+      ]
+    },
+    {
+      "id": "q084",
+      "category": "in_scope",
+      "subtype": "living",
+      "rank": 1,
+      "latency_ms": 768.5,
+      "top_score": 7.822722434997559,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Treatment of Scoliosis",
+        "Who Treats Scoliosis?"
+      ]
+    },
+    {
+      "id": "q088",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": null,
+      "latency_ms": 789.3,
+      "top_score": -6.306337356567383,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "niams-scoliosis-overview"
+      ],
+      "top_headings": [
+        "General information on idiopathic scoliosis > Natural history",
+        "Assessment > Surface assessment > Other evaluation > Physical capacity evaluatio",
+        "Who Gets Scoliosis?"
+      ]
+    },
+    {
+      "id": "q089",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 1,
+      "latency_ms": 842.9,
+      "top_score": 4.996210098266602,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "General information on idiopathic scoliosis > Definitions",
+        "General information on idiopathic scoliosis > Definitions",
+        "General information on idiopathic scoliosis > Classifications > Topographic"
+      ]
+    },
+    {
+      "id": "q090",
+      "category": "in_scope",
+      "subtype": "basics",
+      "rank": 3,
+      "latency_ms": 841.4,
+      "top_score": -4.9579243659973145,
+      "top_sources": [
+        "niams-scoliosis-overview",
+        "niams-scoliosis-overview",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Overview of Scoliosis",
+        "Symptoms of Scoliosis",
+        "General information on idiopathic scoliosis > Definitions"
+      ]
+    },
+    {
+      "id": "q091",
+      "category": "in_scope",
+      "subtype": "diagnosis",
+      "rank": null,
+      "latency_ms": 799.4,
+      "top_score": 0.3056115508079529,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Effi",
+        "Assessment > Clinical assessment",
+        "Brace treatment > Results > Efficacy in adolescents"
+      ]
+    },
+    {
+      "id": "q098",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": 1,
+      "latency_ms": 729.4,
+      "top_score": 4.727823734283447,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Who Treats Scoliosis?",
+        "Premise > Development of the guidelines",
+        "Living With Scoliosis"
+      ]
+    },
+    {
+      "id": "q099",
+      "category": "in_scope",
+      "subtype": "treatment",
+      "rank": null,
+      "latency_ms": 814.3,
+      "top_score": 4.565024375915527,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-overview",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Overview of Scoliosis",
+        "Who Treats Scoliosis?"
+      ]
+    },
+    {
+      "id": "q103",
+      "category": "out_of_scope",
+      "subtype": "personal_advice",
+      "rank": null,
+      "latency_ms": 771.3,
+      "top_score": -2.787015438079834,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Treatment of Scoliosis",
+        "Treatment of Scoliosis",
+        "Brace treatment > Results > Are there braces that are better than others? > Effi"
+      ]
+    },
+    {
+      "id": "q104",
+      "category": "out_of_scope",
+      "subtype": "medication",
+      "rank": null,
+      "latency_ms": 868.1,
+      "top_score": -1.0660991668701172,
+      "top_sources": [
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment",
+        "niams-scoliosis-diagnosis-treatment"
+      ],
+      "top_headings": [
+        "Living With Scoliosis",
+        "Treatment of Scoliosis",
+        "Who Treats Scoliosis?"
+      ]
+    },
+    {
+      "id": "q106",
+      "category": "out_of_scope",
+      "subtype": "diagnosis_request",
+      "rank": null,
+      "latency_ms": 804.5,
+      "top_score": -1.6787118911743164,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Assessment > Surface assessment > Surface topography > Static surface topography",
+        "Assessment > Radiological assessment",
+        "Assessment > Radiological assessment"
+      ]
+    },
+    {
+      "id": "q107",
+      "category": "out_of_scope",
+      "subtype": "off_topic",
+      "rank": null,
+      "latency_ms": 695.8,
+      "top_score": -11.076343536376953,
+      "top_sources": [
+        "sosort-2016",
+        "sosort-2016",
+        "sosort-2016"
+      ],
+      "top_headings": [
+        "Brace treatment > Results > Are there braces that are better than others? > Team",
+        "Conservative treatments other than bracing > Physiotherapeutic scoliosis-specifi",
+        "Brace treatment > Results > Efficacy in adolescents"
+      ]
+    }
+  ]
+}

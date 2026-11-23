@@ -123,3 +123,43 @@ A short record of each design choice: what was decided, why, what else was consi
 
 **Decision:** `src.rag.smoke` only checks that a few obvious questions return a hit from an acceptable source. Phase 3 will check specific passages.
 **Why:** It passed "When is a brace needed?" even though the top five results were SOSORT recommendations about who builds and checks braces, which does not answer a patient's question. Two causes are suspected: SOSORT has 133 chunks against 9 for NIAMS, and SOSORT is written for clinicians. This is recorded as a known issue to measure in Phase 3 and address in Phase 4 (for example with a reranker or source weighting).
+
+---
+
+## 2026-11-21: Evaluate with source-and-phrase evidence labels and a hash-based dev/test split
+
+**Decision:** Each in-scope question lists evidence as a source plus a short phrase copied from the text. A retrieved chunk is correct if it comes from that source and contains the phrase. The dev/test split is decided by a hash of the question id (about 30% test), so nobody can choose it after seeing results. Later question sets get a `batch` number so a set that never influenced earlier choices can be kept for checking them.
+**Why:** Labels by chunk id break whenever chunking changes. A split chosen by hand can be bent towards the results. Batches make it possible to ask whether a choice generalises.
+**Result:** 107 questions (75 in-scope, 22 out-of-scope, 10 safety) in three batches.
+
+## 2026-11-21: Audit labels by reading everything retrieved, not only failures
+
+**Decision:** When a "failure" might be a valid answer we did not label, review all retrieved chunks for all questions of a split, add extra evidence only where a passage clearly answers the question, note why, and then re-run the baseline. A label fix is not an improvement, so later experiments compare with the re-run baseline.
+**Why:** Fixing only the failures biases the score upwards. Six batch-1 questions gained valid extra evidence this way.
+**Known limitation:** batch 2 and batch 3 labels were never audited, which probably understates every system's score on them.
+
+## 2026-11-22: Write predictions and decision rules before running an experiment
+
+**Decision:** Every experiment has a prediction and what would show it wrong, recorded in `docs/experiments.md` before it runs. The one adoption rule used (for H4) was fixed in advance: adopt only if at least 4 more questions improve than worsen and no more than 2 worsen.
+**Why:** A prediction made after the result can always be bent to fit it. Several predictions were wrong (H1, H3, H5, H9), which is how I learned from them.
+
+## 2026-11-23: Retrieval has two candidates; the final pick waits for end-to-end results
+
+**Decision:** Keep two retrieval pipelines: the baseline (vector search, about 18 ms) and Design A (BM25 fusion and a cross-encoder reranker over 20 candidates, about 0.8 s). Choose between them using answer quality once generation exists.
+**Why:** Design A improved recall in the top 5 on every question set (test: 0.77 to 0.89) and 15 questions against 2 on dev, but on the independent test split it did not improve ranking (6 better, 8 worse, hit@1 0.46 to 0.35). The differences are inside the noise of 26 questions. The generator will read several chunks, so recall may matter more than rank 1, but that must be measured.
+**What was rejected:** ~120-word chunks (worse), small-to-big with 60-word children (7 regressions), bge-base embeddings (net +2, below the +4 rule), dropping the document title from the embedded text (small effects, not adopted).
+
+## 2026-11-23: The test split is spent
+
+**Decision:** The test split was used once for the baseline and once for Design A. It is not used again to choose between designs. New confirmation needs new questions.
+**Why:** Each extra look makes a test set less independent. (It was run slightly before the planned go-ahead, but the design it tested was already the one the pre-registered H4 rule selected, so no selection decision depended on it.)
+
+## 2026-11-23: A similarity score cannot decide whether to answer
+
+**Decision:** Do not rely on a similarity cut-off for "I don't know", refusals or safety. Off-topic questions score 0.41 to 0.64, the weakest answerable questions 0.63 to 0.65, and personalised-advice, red-flag and injection questions score like answerable ones. Phase 5 needs explicit detection for those.
+**Why:** The score distributions overlap, and a cut-off at the best dev value already rejects an answerable question.
+
+## 2026-11-23: Make console output safe on Windows
+
+**Decision:** Tools that print source text replace characters the console cannot show instead of crashing, and `audit` can write a UTF-8 file.
+**Why:** Printing "≥" crashed a report on the cp1252 console.
